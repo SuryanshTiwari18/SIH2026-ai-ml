@@ -1,0 +1,45 @@
+# --- Data (shared via Drive link in README, not git) ---
+data/raw/*.parquet
+data/raw/*.csv
+data/splits/*.parquet
+data/splits/*.csv
+# keep the empty folders tracked so `git clone` recreates the structure
+!data/raw/.gitkeep
+!data/splits/.gitkeep
+
+# --- EDA plots: small enough to keep versioned by default ---
+# Uncomment if they start regenerating large/often and bloating the repo:
+# data/eda_plots/*.png
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Secrets / environment (none needed yet, but before you add a real API key) ---
+.env
+*.key
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.gemini/
+.antigravity/
+
+# --- Model training artifacts (you'll hit these soon once training starts) ---
+models/*.pt
+models/*.pkl
+models/*.h5
+*.ckpt
+runs/
+wandb/
+mlruns/
+logs/
