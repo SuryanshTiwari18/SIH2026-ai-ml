@@ -1,0 +1,59 @@
+# SkyGuard AI - Synthetic AWS Sensor Data Generator Configuration
+# Smart India Hackathon 2026 | Problem Statement 26073
+# Parameters: Temperature (°C), Atmospheric Pressure (hPa), Relative Humidity (%)
+
+generation:
+  start_date: "2026-06-01 00:00:00"  # Start of Indian southwest monsoon season
+  duration_days: 60                 # 60 days of continuous multi-station data
+  sampling_interval_minutes: 10     # Standard AWS 10-minute cadence (144 readings/day)
+  random_seed: 42                   # Reproducibility seed
+
+stations:
+  # 16 stations across 4 distinct Indian climate zones
+  include_climate_zones:
+    - coastal
+    - arid
+    - hill
+    - plains
+  spatial_holdout_station_ids:
+    - "AWS_IND_C04"  # Puri (Coastal holdout)
+    - "AWS_IND_A03"  # Bikaner (Arid holdout)
+    - "AWS_IND_H03"  # Shillong (Hill holdout)
+    - "AWS_IND_P03"  # Patna (Plains holdout - 1 per climate zone)
+
+extreme_weather:
+  enabled: true
+  event_probability_per_station: 0.35  # Independent Bernoulli draw per station across 60d
+  min_network_events: 5               # Enforces at least 5 events across >=4 stations
+  event_types:
+    - heatwave
+    - convective_storm_squall
+    - temperature_inversion_fog
+
+anomalies:
+  enabled: true
+  target_anomaly_rate: 0.04   # 4.0% of overall readings
+  station_local: true         # Guarantees neighboring stations remain fault-free for spatial buddy checks
+  min_episodes_per_temporal_split: 8   # Min 8 distinct episodes per fault type in each of train, val, test
+  min_episodes_spatial_holdout: 5      # Min 5 distinct episodes per fault type in spatial holdout
+  fault_type_weights:
+    spike_or_drop: 0.16
+    frozen_sensor: 0.14
+    communication_dropout: 0.14
+    calibration_drift: 0.14
+    power_fluctuation_glitch: 0.14
+    data_corruption: 0.14
+    cross_sensor_inconsistency: 0.14
+
+splits:
+  temporal:
+    train_ratio: 0.70
+    val_ratio: 0.15
+    test_ratio: 0.15
+
+output:
+  output_dir: "data"
+  save_parquet: true
+  save_csv: true
+  save_metadata_json: true
+  generate_plots: true
