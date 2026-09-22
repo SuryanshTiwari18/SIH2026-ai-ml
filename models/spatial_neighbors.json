@@ -1,0 +1,82 @@
+{
+  "AWS_IND_C01": [
+    "AWS_IND_A04",
+    "AWS_IND_P04",
+    "AWS_IND_A01"
+  ],
+  "AWS_IND_C02": [
+    "AWS_IND_H04",
+    "AWS_IND_C03",
+    "AWS_IND_P04"
+  ],
+  "AWS_IND_C03": [
+    "AWS_IND_H04",
+    "AWS_IND_C02",
+    "AWS_IND_C01"
+  ],
+  "AWS_IND_C04": [
+    "AWS_IND_P04",
+    "AWS_IND_P02",
+    "AWS_IND_C02"
+  ],
+  "AWS_IND_A01": [
+    "AWS_IND_A02",
+    "AWS_IND_P01",
+    "AWS_IND_A04"
+  ],
+  "AWS_IND_A02": [
+    "AWS_IND_A01",
+    "AWS_IND_A04",
+    "AWS_IND_P01"
+  ],
+  "AWS_IND_A03": [
+    "AWS_IND_A01",
+    "AWS_IND_A02",
+    "AWS_IND_P01"
+  ],
+  "AWS_IND_A04": [
+    "AWS_IND_C01",
+    "AWS_IND_A01",
+    "AWS_IND_A02"
+  ],
+  "AWS_IND_H01": [
+    "AWS_IND_P01",
+    "AWS_IND_H02",
+    "AWS_IND_P02"
+  ],
+  "AWS_IND_H02": [
+    "AWS_IND_H01",
+    "AWS_IND_P01",
+    "AWS_IND_A02"
+  ],
+  "AWS_IND_H03": [
+    "AWS_IND_P02",
+    "AWS_IND_P04",
+    "AWS_IND_P01"
+  ],
+  "AWS_IND_H04": [
+    "AWS_IND_C03",
+    "AWS_IND_C02",
+    "AWS_IND_C01"
+  ],
+  "AWS_IND_P01": [
+    "AWS_IND_H01",
+    "AWS_IND_P02",
+    "AWS_IND_A01"
+  ],
+  "AWS_IND_P02": [
+    "AWS_IND_P01",
+    "AWS_IND_H01",
+    "AWS_IND_P04"
+  ],
+  "AWS_IND_P03": [
+    "AWS_IND_P02",
+    "AWS_IND_P04",
+    "AWS_IND_P01"
+  ],
+  "AWS_IND_P04": [
+    "AWS_IND_P02",
+    "AWS_IND_C01",
+    "AWS_IND_A01"
+  ]
+}
