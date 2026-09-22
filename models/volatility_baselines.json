@@ -1,0 +1,82 @@
+{
+  "AWS_IND_A01": {
+    "temperature_c": 5.8787420874059375,
+    "pressure_hpa": 3.5838625249657867,
+    "humidity_pct": 13.029843181272382
+  },
+  "AWS_IND_A02": {
+    "temperature_c": 6.80986703471625,
+    "pressure_hpa": 3.335264099034654,
+    "humidity_pct": 11.056184715449236
+  },
+  "AWS_IND_A03": {
+    "temperature_c": 6.192059094847623,
+    "pressure_hpa": 3.765685608707125,
+    "humidity_pct": 12.494958723687642
+  },
+  "AWS_IND_A04": {
+    "temperature_c": 5.061675755298284,
+    "pressure_hpa": 3.6662630307799087,
+    "humidity_pct": 14.659038665267717
+  },
+  "AWS_IND_C01": {
+    "temperature_c": 2.585497423997131,
+    "pressure_hpa": 3.9714507207222476,
+    "humidity_pct": 10.304910324692365
+  },
+  "AWS_IND_C02": {
+    "temperature_c": 2.9630540688240945,
+    "pressure_hpa": 4.020618793277747,
+    "humidity_pct": 11.053471940350661
+  },
+  "AWS_IND_C03": {
+    "temperature_c": 2.2789705740351405,
+    "pressure_hpa": 3.4594390581119687,
+    "humidity_pct": 8.974491402499442
+  },
+  "AWS_IND_C04": {
+    "temperature_c": 2.3962952035373153,
+    "pressure_hpa": 2.6054429880515446,
+    "humidity_pct": 8.429238963764574
+  },
+  "AWS_IND_H01": {
+    "temperature_c": 3.5149966837492084,
+    "pressure_hpa": 3.4054761921712315,
+    "humidity_pct": 12.195989024842884
+  },
+  "AWS_IND_H02": {
+    "temperature_c": 4.367278440534608,
+    "pressure_hpa": 3.206242963972424,
+    "humidity_pct": 13.500239100149363
+  },
+  "AWS_IND_H03": {
+    "temperature_c": 2.970254246843978,
+    "pressure_hpa": 3.010631745104691,
+    "humidity_pct": 10.24558594467587
+  },
+  "AWS_IND_H04": {
+    "temperature_c": 3.2772226065044063,
+    "pressure_hpa": 3.6931567567292833,
+    "humidity_pct": 11.64985206049695
+  },
+  "AWS_IND_P01": {
+    "temperature_c": 4.645993554716849,
+    "pressure_hpa": 2.8568371039234517,
+    "humidity_pct": 13.720357924025151
+  },
+  "AWS_IND_P02": {
+    "temperature_c": 4.752044658744248,
+    "pressure_hpa": 3.9627143543782766,
+    "humidity_pct": 14.898645783105064
+  },
+  "AWS_IND_P03": {
+    "temperature_c": 4.259823283661467,
+    "pressure_hpa": 5.105688655613992,
+    "humidity_pct": 14.590863327963056
+  },
+  "AWS_IND_P04": {
+    "temperature_c": 5.125472858580736,
+    "pressure_hpa": 3.34889012361145,
+    "humidity_pct": 15.98934944963579
+  }
+}

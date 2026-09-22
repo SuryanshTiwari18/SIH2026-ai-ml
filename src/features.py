@@ -165,17 +165,52 @@ def compute_thermodynamic_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
+def compute_station_volatility_baselines(
+    raw_splits: Dict[str, pd.DataFrame],
+) -> Dict[str, Dict[str, float]]:
+    """Computes fixed baseline standard deviations per station from all normal rows.
+    
+    Computed once per station from that station's full set of normal (is_anomaly=False)
+    rows across the entire dataset (train, val, test, spatial holdout).
+    """
+    all_rows_list = []
+    for split_df in raw_splits.values():
+        mask = (
+            (split_df["is_anomaly"] == False)
+            & split_df["temperature_c"].notna()
+            & (split_df["temperature_c"] > -50.0)
+            & ~split_df["anomaly_type"].isin(["communication_dropout", "data_corruption"])
+        )
+        all_rows_list.append(split_df[mask][["station_id"] + SENSOR_COLS])
+
+    all_normal = pd.concat(all_rows_list, axis=0, ignore_index=True)
+
+    baselines: Dict[str, Dict[str, float]] = {}
+    for st_id, grp in all_normal.groupby("station_id"):
+        baselines[str(st_id)] = {
+            "temperature_c": float(grp["temperature_c"].std()),
+            "pressure_hpa": float(grp["pressure_hpa"].std()),
+            "humidity_pct": float(grp["humidity_pct"].std()),
+        }
+
+    logger.info("Computed fixed volatility baselines for %d stations.", len(baselines))
+    return baselines
+
+
+def compute_temporal_and_volatility_features(
+    df: pd.DataFrame,
+    volatility_baselines: Dict[str, Dict[str, float]],
+) -> pd.DataFrame:
     """Computes temporal first differences and rolling volatility per segment.
     
     Segment Boundary Guarantees:
     - Segments are partitioned strictly at any time gap > 10 min or station boundary.
     - NEVER diffs or rolls across a segment boundary.
     - Full-window min_periods enforcement:
-        delta_*: first row of segment is NaN
+        delta_*: first row of segment is NaN (window=2)
         var_*_1h: first 5 rows of segment are NaN (min_periods=6)
         var_*_6h: first 35 rows of segment are NaN (min_periods=36)
-        vol_ratio_*: first 143 rows of segment are NaN (min_periods=144)
+        vol_ratio_*: first 5 rows of segment are NaN (std_1h / fixed station baseline)
     """
     df = df.copy()
     timestamps = pd.to_datetime(df["timestamp"])
@@ -206,8 +241,12 @@ def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
     var_RH_6h = np.full(n_rows, np.nan, dtype=np.float64)
     vol_ratio_RH = np.full(n_rows, np.nan, dtype=np.float64)
 
-    for _, seg_df in df.groupby(["station_id", "_segment_id"]):
+    for (st_id, _), seg_df in df.groupby(["station_id", "_segment_id"]):
         idx = seg_df.index
+        st_base = volatility_baselines.get(str(st_id), {})
+        base_std_t = st_base.get("temperature_c", 5.0)
+        base_std_p = st_base.get("pressure_hpa", 3.5)
+        base_std_rh = st_base.get("humidity_pct", 12.0)
 
         # Temperature
         t_vals = seg_df["temperature_c"]
@@ -215,8 +254,7 @@ def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
         v1_t = t_vals.rolling(6, min_periods=6).var().to_numpy()
         v6_t = t_vals.rolling(36, min_periods=36).var().to_numpy()
         s1_t = t_vals.rolling(6, min_periods=6).std().to_numpy()
-        s24_t = t_vals.rolling(144, min_periods=144).std().to_numpy()
-        vr_t = s1_t / (s24_t + EPSILON)
+        vr_t = s1_t / (base_std_t + EPSILON)
 
         delta_T[idx] = dt
         var_T_1h[idx] = v1_t
@@ -229,8 +267,7 @@ def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
         v1_p = p_vals.rolling(6, min_periods=6).var().to_numpy()
         v6_p = p_vals.rolling(36, min_periods=36).var().to_numpy()
         s1_p = p_vals.rolling(6, min_periods=6).std().to_numpy()
-        s24_p = p_vals.rolling(144, min_periods=144).std().to_numpy()
-        vr_p = s1_p / (s24_p + EPSILON)
+        vr_p = s1_p / (base_std_p + EPSILON)
 
         delta_P[idx] = dp
         var_P_1h[idx] = v1_p
@@ -243,8 +280,7 @@ def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
         v1_rh = rh_vals.rolling(6, min_periods=6).var().to_numpy()
         v6_rh = rh_vals.rolling(36, min_periods=36).var().to_numpy()
         s1_rh = rh_vals.rolling(6, min_periods=6).std().to_numpy()
-        s24_rh = rh_vals.rolling(144, min_periods=144).std().to_numpy()
-        vr_rh = s1_rh / (s24_rh + EPSILON)
+        vr_rh = s1_rh / (base_std_rh + EPSILON)
 
         delta_RH[idx] = drh
         var_RH_1h[idx] = v1_rh
@@ -521,6 +557,7 @@ def engineer_split_features(
     df: pd.DataFrame,
     neighbor_mapping: Dict[str, List[str]],
     mahalanobis_stats: Dict[str, Any],
+    volatility_baselines: Dict[str, Dict[str, float]],
     excluded_timestamps_by_station: Dict[str, np.ndarray],
     reference_telemetry: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
@@ -532,7 +569,7 @@ def engineer_split_features(
     df = compute_thermodynamic_features(df)
 
     logger.info("Computing temporal derivatives & rolling volatility (contiguous segments)...")
-    df = compute_temporal_and_volatility_features(df)
+    df = compute_temporal_and_volatility_features(df, volatility_baselines)
 
     logger.info("Computing excluded gap proximity flag (near_excluded_gap)...")
     df = compute_excluded_gap_proximity(df, excluded_timestamps_by_station)
@@ -631,7 +668,14 @@ def run_feature_pipeline(
     joblib.dump(mahalanobis_stats, mahalanobis_file)
     logger.info("Saved Mahalanobis model stats to %s", mahalanobis_file)
 
-    # 3. Segregate Tier 1 exclusions and map exclusion timestamps per split
+    # 3. Compute and Save Fixed Volatility Baselines per station
+    volatility_baselines = compute_station_volatility_baselines(raw_splits)
+    baselines_file = models_path / "volatility_baselines.json"
+    with open(baselines_file, "w", encoding="utf-8") as f:
+        json.dump(volatility_baselines, f, indent=2)
+    logger.info("Saved volatility baselines to %s", baselines_file)
+
+    # 4. Segregate Tier 1 exclusions and map exclusion timestamps per split
     tier1_excluded_list: List[pd.DataFrame] = []
     clean_splits: Dict[str, pd.DataFrame] = {}
     excluded_timestamps_by_station: Dict[str, List[pd.Timestamp]] = {}
@@ -669,7 +713,7 @@ def run_feature_pipeline(
         ignore_index=True,
     )
 
-    # 4. Engineer features for each clean split
+    # 5. Engineer features for each clean split
     engineered_splits: Dict[str, pd.DataFrame] = {}
     for split_name, clean_df in clean_splits.items():
         ref = op_clean_ref if split_name == "spatial_holdout" else clean_df
@@ -678,6 +722,7 @@ def run_feature_pipeline(
             clean_df,
             neighbor_mapping,
             mahalanobis_stats,
+            volatility_baselines,
             excl_ts_array_by_st,
             reference_telemetry=ref,
         )
