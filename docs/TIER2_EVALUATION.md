@@ -93,21 +93,61 @@ Detection percentage on downstream Tier-3 anomaly types (`calibration_drift` and
 
 ---
 
-## 6. Genuine Extreme Weather Event Audit (5 Scheduled Windows)
+## 6. Genuine Extreme Weather Event Audit & Investigation
 
-Reconstructed evaluation of the 5 severe weather phenomena from `generation_metadata.json`:
+Reconstructed evaluation of the 5 severe weather phenomena from `generation_metadata.json` across their true simulation time windows:
 
 | Event ID | Station | Event Type | Total Steps | IF False Positives | GRU False Positives | Ensemble False Positives | FPR |
 | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | `AWS_IND_A01` | heatwave | 445 | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | **0.00%** |
-| **2** | `AWS_IND_H01` | convective_storm_squall | 77 | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | **0.00%** |
-| **3** | `AWS_IND_H02` | temperature_inversion_fog | 138 | 0 (0.00%) | 5 (3.62%) | 5 (3.62%) | **3.62%** |
-| **4** | `AWS_IND_P03` | heatwave | 584 | 0 (0.00%) | 0 (0.00%) | 0 (0.00%) | **0.00%** |
-| **5** | `AWS_IND_P04` | temperature_inversion_fog | 134 | 0 (0.00%) | 28 (20.90%) | 28 (20.90%) | **20.90%** |
+| **1** | `AWS_IND_A01` | heatwave | 445 | 0 (0.0%) | 0 (0.0%) | 0 (0.0%) | **0.0%** |
+| **2** | `AWS_IND_H01` | convective_storm_squall | 77 | 25 (32.5%) | 38 (49.4%) | 38 (49.4%) | **49.4%** |
+| **3** | `AWS_IND_H02` | temperature_inversion_fog | 138 | 0 (0.0%) | 6 (4.3%) | 6 (4.3%) | **4.3%** |
+| **4** | `AWS_IND_P03` | heatwave | 584 | 0 (0.0%) | 0 (0.0%) | 0 (0.0%) | **0.0%** |
+| **5** | `AWS_IND_P04` | temperature_inversion_fog | 134 | 0 (0.0%) | 24 (17.9%) | 24 (17.9%) | **17.9%** |
+| **TOTAL** | — | **5 Severe Events** | **1378** | **25 (1.81%)** | **68 (4.93%)** | **68 (4.93%)** | **4.93%** |
+
+### Investigation of AWS_IND_H01 Convective Squall False Positives
+
+During Event 2 on `AWS_IND_H01` (`convective_storm_squall`), GRU-AE flagged 38/77 rows (49.4%) and Isolation Forest flagged 25/77 rows (32.5%). Direct inspection of the physical features during this window reveals:
+- Peak barometric rate-of-change: $\Delta P = -6.91\text{ hPa} / 10\text{-min}$ (total storm pressure drop: $12.21\text{ hPa}$)
+- Peak temperature drop: $\Delta T = -5.64^\circ\text{C} / 10\text{-min}$ (total convective cooling: $9.37^\circ\text{C}$)
+- Short-window rolling variance surge: $\sigma^2_P(1\text{h}) = 26.16, \sigma^2_T(1\text{h}) = 19.24$
+
+From the perspective of a single isolated station observing only univariate/temporal features, **a violent convective squall exhibits the exact mathematical signature of an abrupt hardware spike or power glitch** ($|\Delta P| > 2.5\text{ hPa}$, $|\Delta T| > 3.0^\circ\text{C}$).
+
+#### Mitigation Strategy Experiments:
+1. **Window Oversampling / Upweighting**: Experimentally upweighting the 148 normal windows overlapping the H01 squall by 20x during GRU-AE training reduced the squall false alarms only marginally (from 49.4% to 46.8%). Because an extreme squall occurs once in 60 days, forcing a low-capacity bottleneck to compress both quiet diurnal waves and sudden 12 hPa drops degrades sensitivity to genuine hardware step jumps.
+2. **Threshold Raising & Recall Tradeoff**: Sweeping the decision threshold on validation data reveals the following tradeoff curve:
+
+| GRU Threshold | Val Percentile | Val Recall (Tier 2) | Val Precision | Val F1 | H01 Squall FPR (Event 2) | Total Extreme Weather FPR |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `0.5980` | 90.0% | 49.47% | 12.93% | 0.2050 | 47 / 77 (61.0%) | 138 / 1378 (10.0%) |
+| `1.0082` (Selected) | 95.0% | 36.77% | 19.23% | 0.2525 | 38 / 77 (49.4%) | 68 / 1378 (4.9%) |
+| `1.3206` | 96.0% | 31.22% | 20.38% | 0.2466 | 32 / 77 (41.6%) | 55 / 1378 (4.0%) |
+| `2.5243` | 97.0% | 20.11% | 17.51% | 0.1872 | 29 / 77 (37.7%) | 36 / 1378 (2.6%) |
+| `7.2158` | 98.0% | 20.11% | 26.21% | 0.2275 | 25 / 77 (32.5%) | 28 / 1378 (2.0%) |
+| `18.6869` | 98.5% | 17.72% | 30.88% | 0.2252 | 17 / 77 (22.1%) | 17 / 1378 (1.2%) |
+| `38.2753` | 99.0% | 12.17% | 31.72% | 0.1759 | 5 / 77 (6.5%) | 5 / 1378 (0.4%) |
+| `1267.2398` | 99.9% | 1.06% | 26.67% | 0.0204 | 0 / 77 (0.0%) | 0 / 1378 (0.0%) |
+
+> [!IMPORTANT]
+> **Key Takeaway & Handoff to Tier 4 Fusion**: Reducing H01 squall false alarms to zero via threshold manipulation collapses validation recall from 36.8% to 1.1%, completely blinding the model to hardware spikes. Single-station temporal models fundamentally cannot distinguish a localized hardware spike from a regional squall. This provides the direct empirical justification for **Tier 3 (Spatial Buddy Check)** and **Tier 4 (Multi-Tier Fusion)**: when a regional squall strikes, neighboring stations (H02, H03, H04) experience the same pressure drop simultaneously ($|\Delta P_\text{buddy}| \approx 0$), allowing the Tier 4 fusion engine to override and downweight Tier 2 false alarms.
 
 ---
 
-## 7. Operational Viability & Recommendation
+## 7. Operational Viability & Model Comparison Recommendation
 
-1. **Ensemble Superiority**: The logical OR ensemble achieves higher balanced recall across both sudden volatility spikes (`power_fluctuation_glitch`, `spike_or_drop`) and prolonged sequence flatlines (`frozen_sensor`), outperforming either standalone model on test and spatial holdout splits.
-2. **Production Recommendation**: Deploy the **Ensemble** configuration (`if_flagged | gru_flagged`). For ultra-low power edge devices with tight compute limits, the standalone **Isolation Forest** serves as an efficient lightweight alternative.
+### A. Clarification on the 'Ensemble' Configuration
+Empirical audit confirms that **`if_flagged` is a strict subset of `gru_flagged` across all splits** (there are 0 rows in train, val, test, or spatial holdout where Isolation Forest flags an anomaly that GRU-AE misses). Consequently, the logical OR ensemble (`if_flagged | gru_flagged`) is **mathematically identical to standalone GRU-Autoencoder**. There is no third 'hybrid' model—the real deployment decision is a direct two-way choice between:
+
+1. **GRU-Autoencoder (High-Recall Deep Sequence Learner)**:
+   - **Strengths**: Substantially higher recall across all splits (36.8%–41.7% vs. 13.1%–23.2% for IF). Specifically, it is the only Tier 2 model capable of catching `frozen_sensor` flatlines (20.9%–27.5% recall, whereas IF has 0.0% recall).
+   - **Weaknesses**: Lower precision (12.2%–19.2%) and higher susceptibility to severe weather false alarms (4.9% across extreme events). Requires PyTorch runtime.
+
+2. **Isolation Forest (Lightweight High-Precision Edge Guard)**:
+   - **Strengths**: Much higher precision (33.1%–45.6%), near-instant scoring latency (<1 ms for 15k rows), zero false alarms on 4 out of 5 extreme weather events (heatwaves and inversions), and trivial CPU deployment footprint.
+   - **Weaknesses**: Lower recall (13.1%–23.2%) and completely blind to zero-variance flatlines (`frozen_sensor` recall: 0.0%).
+
+### B. Architectural Recommendation
+- **Standard Cloud / Central Server Pipeline**: Deploy **GRU-Autoencoder** to capture maximum temporal anomalies, relying on **Tier 4 Multi-Tier Fusion** (incorporating Tier 3 spatial buddy delta features) to filter out the ~5% convective squall false alarms.
+- **Low-Power Remote Edge AWS Stations**: Deploy **Isolation Forest** directly on station data loggers as an instantaneous, ultra-lightweight sanity filter for sudden spikes and voltage glitches.
