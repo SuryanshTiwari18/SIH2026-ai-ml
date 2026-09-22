@@ -1,0 +1,29 @@
+{
+  "tuning_split": "val",
+  "timestamp": "2026-09-23 00:02:26",
+  "target_anomaly_types": [
+    "spike_or_drop",
+    "frozen_sensor",
+    "power_fluctuation_glitch"
+  ],
+  "isolation_forest": {
+    "threshold": 0.5616959824662531,
+    "percentile": 98.91010101010102,
+    "val_precision": 0.45569620253164556,
+    "val_recall": 0.19047619047619047,
+    "val_f1": 0.2686567164179104
+  },
+  "gru_autoencoder": {
+    "threshold": 1.0082371537470154,
+    "percentile": 95.0,
+    "val_precision": 0.19225449515905949,
+    "val_recall": 0.36772486772486773,
+    "val_f1": 0.2524977293369664
+  },
+  "ensemble": {
+    "strategy": "logical_or (if_flagged | gru_flagged)",
+    "val_precision": 0.19225449515905949,
+    "val_recall": 0.36772486772486773,
+    "val_f1": 0.2524977293369664
+  }
+}
