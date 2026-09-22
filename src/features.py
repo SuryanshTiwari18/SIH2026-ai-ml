@@ -5,7 +5,7 @@ Author: SkyGuard AI Team (SIH 2026, PS 26073)
 
 Grounding:
 Formulas and transformations strictly implemented per EDA_INSIGHTS.md Section 8:
-1. Temporal derivatives: delta_T, delta_P, delta_RH (station-bounded, restart at dropout)
+1. Temporal derivatives: delta_T, delta_P, delta_RH (segment-bounded, true gap restarts)
 2. Rolling volatility: 1h/6h rolling variance per sensor, VolRatio = std_1h / (std_24h + epsilon)
 3. Diurnal harmonic phase embeddings: sin_hour, cos_hour from timestamp
 4. Dew point depression: T - T_dew via August-Roche-Magnus (reusing src.physics)
@@ -15,10 +15,15 @@ Formulas and transformations strictly implemented per EDA_INSIGHTS.md Section 8:
 
 Leakage & Data Quality Guarantees:
 - Scaler (StandardScaler) fitted strictly on TRAIN split where is_anomaly == False.
-- Never forward-fill across dropout gaps. Hard boundary segmentation.
+- True gap segmentation: any interval > 10 min starts a new segment.
+- Zero lookback reach across exclusion gaps or segment boundaries.
+- Full window min_periods: segment start rows missing lookback history get NaN and
+  are routed to data/features/gap_edge_excluded_rows.parquet.
 - Tier 1 excluded rows (communication_dropout, data_corruption) segregated to
   data/features/tier1_excluded_rows.parquet.
-- Output parquet files retain raw sensors unscaled alongside scaled engineered columns.
+- near_excluded_gap flag set for observations within 1 hour of any exclusion boundary.
+- Reference telemetry for spatial buddy check is cleansed of Tier 1 corruptions.
+- Retained feature parquet files have ZERO NaNs in any feature column.
 """
 
 from __future__ import annotations
@@ -95,15 +100,7 @@ def build_spatial_neighbor_mapping(
     """Builds spatial neighbor mapping for all stations in catalog.
     
     For any station, its k nearest reference neighbors are selected from the
-    operational monitoring network (train stations). If train_station_ids is None,
-    all stations in the catalog are used.
-    
-    Args:
-        train_station_ids: List of operational training station IDs.
-        k_neighbors: Number of nearest neighbors to retain (default 3).
-        
-    Returns:
-        Dict mapping station_id -> list of k nearest neighbor station_ids.
+    operational monitoring network (train stations).
     """
     catalog = get_station_catalog()
     all_stations = list(catalog.keys())
@@ -169,102 +166,92 @@ def compute_thermodynamic_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Computes temporal first differences and rolling volatility per station.
+    """Computes temporal first differences and rolling volatility per segment.
     
-    Boundary Guarantees:
-    - Never diffs across station changes.
-    - Never diffs or rolls across communication_dropout episodes or gaps.
-    - Identifies contiguous valid segments: first row of segment resets derivative to 0.0
-      and min_periods=1 ensures no NaNs are produced.
+    Segment Boundary Guarantees:
+    - Segments are partitioned strictly at any time gap > 10 min or station boundary.
+    - NEVER diffs or rolls across a segment boundary.
+    - Full-window min_periods enforcement:
+        delta_*: first row of segment is NaN
+        var_*_1h: first 5 rows of segment are NaN (min_periods=6)
+        var_*_6h: first 35 rows of segment are NaN (min_periods=36)
+        vol_ratio_*: first 143 rows of segment are NaN (min_periods=144)
     """
-    df = df.sort_values(["station_id", "timestamp"]).copy()
+    df = df.copy()
     timestamps = pd.to_datetime(df["timestamp"])
+    df["_ts"] = timestamps
+    df = df.sort_values(["station_id", "_ts"]).reset_index(drop=True)
 
-    # Detect dropout / NaN gaps
-    is_nan_sensor = (
-        df["temperature_c"].isna() | df["pressure_hpa"].isna() | df["humidity_pct"].isna()
-    )
-    is_dropout_type = df["anomaly_type"].fillna("") == "communication_dropout"
-    is_dropout = is_nan_sensor | is_dropout_type
-
-    # Detect temporal discontinuities (>10 min interval or station boundary)
-    dt_sec = timestamps.diff().dt.total_seconds().fillna(600.0)
+    # Identify true temporal gaps (>10 min interval or station boundary)
+    dt_sec = df.groupby("station_id")["_ts"].diff().dt.total_seconds().fillna(600.0)
     station_changed = df["station_id"] != df["station_id"].shift(1)
-    time_gap = (dt_sec != 600.0) & (~station_changed)
+    df["_is_gap"] = (dt_sec != 600.0) | station_changed
+    df["_segment_id"] = df.groupby("station_id")["_is_gap"].cumsum()
 
-    # Contiguous segment identifier: increments whenever boundary is encountered
-    boundary_marker = station_changed | time_gap | is_dropout | is_dropout.shift(1, fill_value=False)
-    segment_id = boundary_marker.cumsum()
-
-    # Pre-allocate output feature arrays
+    # Pre-allocate output arrays with NaN
     n_rows = len(df)
-    delta_T = np.zeros(n_rows, dtype=np.float64)
-    delta_P = np.zeros(n_rows, dtype=np.float64)
-    delta_RH = np.zeros(n_rows, dtype=np.float64)
+    delta_T = np.full(n_rows, np.nan, dtype=np.float64)
+    delta_P = np.full(n_rows, np.nan, dtype=np.float64)
+    delta_RH = np.full(n_rows, np.nan, dtype=np.float64)
 
-    var_T_1h = np.zeros(n_rows, dtype=np.float64)
-    var_T_6h = np.zeros(n_rows, dtype=np.float64)
-    vol_ratio_T = np.zeros(n_rows, dtype=np.float64)
+    var_T_1h = np.full(n_rows, np.nan, dtype=np.float64)
+    var_T_6h = np.full(n_rows, np.nan, dtype=np.float64)
+    vol_ratio_T = np.full(n_rows, np.nan, dtype=np.float64)
 
-    var_P_1h = np.zeros(n_rows, dtype=np.float64)
-    var_P_6h = np.zeros(n_rows, dtype=np.float64)
-    vol_ratio_P = np.zeros(n_rows, dtype=np.float64)
+    var_P_1h = np.full(n_rows, np.nan, dtype=np.float64)
+    var_P_6h = np.full(n_rows, np.nan, dtype=np.float64)
+    vol_ratio_P = np.full(n_rows, np.nan, dtype=np.float64)
 
-    var_RH_1h = np.zeros(n_rows, dtype=np.float64)
-    var_RH_6h = np.zeros(n_rows, dtype=np.float64)
-    vol_ratio_RH = np.zeros(n_rows, dtype=np.float64)
+    var_RH_1h = np.full(n_rows, np.nan, dtype=np.float64)
+    var_RH_6h = np.full(n_rows, np.nan, dtype=np.float64)
+    vol_ratio_RH = np.full(n_rows, np.nan, dtype=np.float64)
 
-    # Compute strictly within contiguous non-dropout segments
-    df["_segment_id"] = segment_id
-    for _, seg_df in df[~is_dropout].groupby("_segment_id"):
+    for _, seg_df in df.groupby(["station_id", "_segment_id"]):
         idx = seg_df.index
 
-        # Temperature derivatives & rolling volatility
+        # Temperature
         t_vals = seg_df["temperature_c"]
-        dt = t_vals.diff().fillna(0.0).to_numpy()
-        delta_T[df.index.get_indexer(idx)] = dt
-
-        v1_t = t_vals.rolling(6, min_periods=1).var().fillna(0.0).to_numpy()
-        v6_t = t_vals.rolling(36, min_periods=1).var().fillna(0.0).to_numpy()
-        s1_t = t_vals.rolling(6, min_periods=1).std().fillna(0.0).to_numpy()
-        s24_t = t_vals.rolling(144, min_periods=1).std().fillna(0.0).to_numpy()
+        dt = t_vals.diff().to_numpy()
+        v1_t = t_vals.rolling(6, min_periods=6).var().to_numpy()
+        v6_t = t_vals.rolling(36, min_periods=36).var().to_numpy()
+        s1_t = t_vals.rolling(6, min_periods=6).std().to_numpy()
+        s24_t = t_vals.rolling(144, min_periods=144).std().to_numpy()
         vr_t = s1_t / (s24_t + EPSILON)
 
-        var_T_1h[df.index.get_indexer(idx)] = v1_t
-        var_T_6h[df.index.get_indexer(idx)] = v6_t
-        vol_ratio_T[df.index.get_indexer(idx)] = vr_t
+        delta_T[idx] = dt
+        var_T_1h[idx] = v1_t
+        var_T_6h[idx] = v6_t
+        vol_ratio_T[idx] = vr_t
 
-        # Pressure derivatives & rolling volatility
+        # Pressure
         p_vals = seg_df["pressure_hpa"]
-        dp = p_vals.diff().fillna(0.0).to_numpy()
-        delta_P[df.index.get_indexer(idx)] = dp
-
-        v1_p = p_vals.rolling(6, min_periods=1).var().fillna(0.0).to_numpy()
-        v6_p = p_vals.rolling(36, min_periods=1).var().fillna(0.0).to_numpy()
-        s1_p = p_vals.rolling(6, min_periods=1).std().fillna(0.0).to_numpy()
-        s24_p = p_vals.rolling(144, min_periods=1).std().fillna(0.0).to_numpy()
+        dp = p_vals.diff().to_numpy()
+        v1_p = p_vals.rolling(6, min_periods=6).var().to_numpy()
+        v6_p = p_vals.rolling(36, min_periods=36).var().to_numpy()
+        s1_p = p_vals.rolling(6, min_periods=6).std().to_numpy()
+        s24_p = p_vals.rolling(144, min_periods=144).std().to_numpy()
         vr_p = s1_p / (s24_p + EPSILON)
 
-        var_P_1h[df.index.get_indexer(idx)] = v1_p
-        var_P_6h[df.index.get_indexer(idx)] = v6_p
-        vol_ratio_P[df.index.get_indexer(idx)] = vr_p
+        delta_P[idx] = dp
+        var_P_1h[idx] = v1_p
+        var_P_6h[idx] = v6_p
+        vol_ratio_P[idx] = vr_p
 
-        # Humidity derivatives & rolling volatility
+        # Humidity
         rh_vals = seg_df["humidity_pct"]
-        drh = rh_vals.diff().fillna(0.0).to_numpy()
-        delta_RH[df.index.get_indexer(idx)] = drh
-
-        v1_rh = rh_vals.rolling(6, min_periods=1).var().fillna(0.0).to_numpy()
-        v6_rh = rh_vals.rolling(36, min_periods=1).var().fillna(0.0).to_numpy()
-        s1_rh = rh_vals.rolling(6, min_periods=1).std().fillna(0.0).to_numpy()
-        s24_rh = rh_vals.rolling(144, min_periods=1).std().fillna(0.0).to_numpy()
+        drh = rh_vals.diff().to_numpy()
+        v1_rh = rh_vals.rolling(6, min_periods=6).var().to_numpy()
+        v6_rh = rh_vals.rolling(36, min_periods=36).var().to_numpy()
+        s1_rh = rh_vals.rolling(6, min_periods=6).std().to_numpy()
+        s24_rh = rh_vals.rolling(144, min_periods=144).std().to_numpy()
         vr_rh = s1_rh / (s24_rh + EPSILON)
 
-        var_RH_1h[df.index.get_indexer(idx)] = v1_rh
-        var_RH_6h[df.index.get_indexer(idx)] = v6_rh
-        vol_ratio_RH[df.index.get_indexer(idx)] = vr_rh
+        delta_RH[idx] = drh
+        var_RH_1h[idx] = v1_rh
+        var_RH_6h[idx] = v6_rh
+        vol_ratio_RH[idx] = vr_rh
 
-    df.drop(columns=["_segment_id"], inplace=True)
+    df.drop(columns=["_ts", "_is_gap", "_segment_id"], inplace=True)
 
     df["delta_T"] = delta_T
     df["delta_P"] = delta_P
@@ -285,34 +272,35 @@ def compute_temporal_and_volatility_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def compute_dropout_proximity(df: pd.DataFrame) -> pd.DataFrame:
-    """Adds boolean flag near_dropout_gap: True for rows within 1h of a dropout episode."""
+def compute_excluded_gap_proximity(
+    df: pd.DataFrame,
+    excluded_timestamps_by_station: Dict[str, np.ndarray],
+) -> pd.DataFrame:
+    """Adds boolean flag near_excluded_gap: True for rows within 1h of ANY exclusion boundary
+    (data_corruption or communication_dropout).
+    """
     df = df.copy()
-    timestamps = pd.to_datetime(df["timestamp"])
-    is_dropout = (
-        df["anomaly_type"].fillna("") == "communication_dropout"
-    ) | df["temperature_c"].isna()
+    timestamps = pd.to_datetime(df["timestamp"]).to_numpy()
+    stations = df["station_id"].to_numpy()
 
     near_gap = np.zeros(len(df), dtype=bool)
 
-    # Process each station independently
-    for station_id, st_indices in df.groupby("station_id").groups.items():
-        st_dropouts = timestamps.loc[st_indices][is_dropout.loc[st_indices]]
-        if st_dropouts.empty:
+    for st_id, st_indices in df.groupby("station_id").groups.items():
+        if st_id not in excluded_timestamps_by_station:
+            continue
+        excl_ts = excluded_timestamps_by_station[st_id]
+        if len(excl_ts) == 0:
             continue
 
-        st_ts = timestamps.loc[st_indices].to_numpy()
-        drop_ts = st_dropouts.to_numpy()
-
-        # Vectorized time difference to nearest dropout episode
-        # shape: (n_station_rows, n_dropouts)
-        diff_matrix = np.abs(st_ts[:, np.newaxis] - drop_ts[np.newaxis, :])
+        st_ts = timestamps[st_indices]
+        # shape: (n_rows, n_exclusions)
+        diff_matrix = np.abs(st_ts[:, np.newaxis] - excl_ts[np.newaxis, :])
         min_diff_sec = diff_matrix.min(axis=1) / np.timedelta64(1, "s")
         is_near = min_diff_sec <= 3600.0  # 1 hour
 
-        near_gap[df.index.get_indexer(st_indices)] = is_near
+        near_gap[st_indices] = is_near
 
-    df["near_dropout_gap"] = near_gap
+    df["near_excluded_gap"] = near_gap
     return df
 
 
@@ -323,6 +311,8 @@ def fit_mahalanobis_model(train_df: pd.DataFrame) -> Dict[str, Any]:
     Also computes global hour-of-day fallback stats for unseen holdout stations.
     """
     normal_train = train_df[train_df["is_anomaly"] == False].dropna(subset=SENSOR_COLS).copy()
+    # Filter out sentinel corruptions if any
+    normal_train = normal_train[normal_train["temperature_c"] > -50.0]
     normal_train["hour"] = pd.to_datetime(normal_train["timestamp"]).dt.hour
 
     stats: Dict[str, Any] = {
@@ -387,7 +377,8 @@ def apply_mahalanobis_distance(
     
     Formula:
         DM(x) = sqrt( (x - mu)^T * Sigma^-1 * (x - mu) )
-    For unseen stations, utilizes the station's nearest training peer or hour fallback.
+    For unseen stations, utilizes the station's nearest training peer or hour fallback,
+    with hydrostatic altitude compensation for pressure baseline differences.
     """
     df = df.copy()
     hours = pd.to_datetime(df["timestamp"]).dt.hour.to_numpy()
@@ -401,7 +392,6 @@ def apply_mahalanobis_distance(
 
     catalog = get_station_catalog()
 
-    # Iterate row-by-row
     for i in range(len(df)):
         x_i = x_matrix[i]
         if np.isnan(x_i).any():
@@ -416,7 +406,6 @@ def apply_mahalanobis_distance(
             bucket = station_hour_stats[key]
             mu = bucket["mu"]
         elif neighbor_mapping and st_id in neighbor_mapping:
-            # Unseen station: look up nearest training neighbor
             peer_st = neighbor_mapping[st_id][0]
             peer_key = (peer_st, h)
             bucket = station_hour_stats.get(peer_key, hour_fallback.get(h, global_fallback))
@@ -450,18 +439,22 @@ def compute_spatial_buddy_features(
         delta_T_buddy = |T_station - T_nearest|
         delta_P_cluster = P_station - median(P_of_3_neighbors)
         
-    Args:
-        df: Target dataframe.
-        neighbor_mapping: Mapping of station_id -> list of 3 nearest neighbor station_ids.
-        reference_telemetry: Optional dataframe containing telemetry of operational stations
-            (useful when processing spatial holdout stations that reference train stations).
-            If None, df itself is used as reference.
+    Guarantees:
+    - Excludes corrupted rows from reference telemetry so invalid sentinels (-999.0)
+      never leak into peer delta calculations.
     """
     df = df.copy()
     ref = df if reference_telemetry is None else reference_telemetry
 
+    # Strictly filter out corrupted / dropout rows from reference
+    ref_mask = (
+        ref["anomaly_type"].isin(["communication_dropout", "data_corruption"])
+        | ref["temperature_c"].isna()
+        | (ref["temperature_c"] < -50.0)
+    )
+    ref_clean = ref[~ref_mask].dropna(subset=SENSOR_COLS)
+
     # Pivot reference temperature and pressure by (timestamp, station_id)
-    ref_clean = ref.dropna(subset=SENSOR_COLS)
     piv_t = ref_clean.pivot_table(index="timestamp", columns="station_id", values="temperature_c")
     piv_p = ref_clean.pivot_table(index="timestamp", columns="station_id", values="pressure_hpa")
 
@@ -492,7 +485,6 @@ def compute_spatial_buddy_features(
             continue
 
         # 1. delta_T_buddy: |T_station - T_nearest|
-        # If nearest neighbor has NaN / dropout at ts, try next closest available neighbor
         t_near = np.nan
         for n_st in neighbors:
             if ts in piv_t.index and n_st in piv_t.columns:
@@ -529,20 +521,21 @@ def engineer_split_features(
     df: pd.DataFrame,
     neighbor_mapping: Dict[str, List[str]],
     mahalanobis_stats: Dict[str, Any],
+    excluded_timestamps_by_station: Dict[str, np.ndarray],
     reference_telemetry: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
-    """Applies all raw feature engineering transformations to a split dataframe."""
+    """Applies all raw feature engineering transformations to a cleansed split dataframe."""
     logger.info("Computing diurnal harmonics...")
     df = compute_diurnal_harmonics(df)
 
     logger.info("Computing thermodynamic features (August-Roche-Magnus)...")
     df = compute_thermodynamic_features(df)
 
-    logger.info("Computing temporal derivatives & rolling volatility (contiguous blocks)...")
+    logger.info("Computing temporal derivatives & rolling volatility (contiguous segments)...")
     df = compute_temporal_and_volatility_features(df)
 
-    logger.info("Computing dropout proximity flag (near_dropout_gap)...")
-    df = compute_dropout_proximity(df)
+    logger.info("Computing excluded gap proximity flag (near_excluded_gap)...")
+    df = compute_excluded_gap_proximity(df, excluded_timestamps_by_station)
 
     logger.info("Computing dynamic Mahalanobis distance...")
     df = apply_mahalanobis_distance(df, mahalanobis_stats, neighbor_mapping)
@@ -553,17 +546,16 @@ def engineer_split_features(
     return df
 
 
-def fit_feature_scaler(train_df: pd.DataFrame) -> StandardScaler:
+def fit_feature_scaler(train_retained_df: pd.DataFrame) -> StandardScaler:
     """Fits StandardScaler strictly on normal (is_anomaly == False) train rows.
     
     Leakage Rule:
     - Never fit on anomalous rows.
     - Never fit on validation, test, or holdout splits.
+    - Fitted ONLY on retained rows (free of NaNs and lookback gaps).
     """
-    normal_mask = (train_df["is_anomaly"] == False) & (
-        ~train_df["anomaly_type"].isin(["communication_dropout", "data_corruption"])
-    )
-    fit_rows = train_df[normal_mask][ENGINEERED_FEATURE_COLS]
+    normal_mask = train_retained_df["is_anomaly"] == False
+    fit_rows = train_retained_df[normal_mask][ENGINEERED_FEATURE_COLS]
 
     scaler = StandardScaler()
     scaler.fit(fit_rows)
@@ -595,17 +587,17 @@ def run_feature_pipeline(
     output_features_dir: str | Path = "data/features",
     models_dir: str | Path = "models",
 ) -> Dict[str, pd.DataFrame]:
-    """Executes the complete end-to-end feature engineering pipeline.
+    """Executes the complete end-to-end feature engineering pipeline with gap isolation.
     
     Steps:
-    1. Load splits: train, val, test, spatial_holdout_stations.
-    2. Build spatial neighbor mapping (k=3) from station coordinates.
-    3. Fit Mahalanobis model strictly on normal train rows.
-    4. Compute engineered features for all splits.
-    5. Fit StandardScaler strictly on normal train rows.
-    6. Scale engineered features across all splits.
-    7. Segregate Tier 1 excluded rows (communication_dropout, data_corruption)
-       into data/features/tier1_excluded_rows.parquet.
+    1. Load raw splits: train, val, test, spatial_holdout_stations.
+    2. Segregate Tier 1 excluded rows (communication_dropout, data_corruption) FIRST.
+    3. Partition clean series into contiguous segments at true temporal gaps (>10 min).
+    4. Compute all derivative and rolling features per segment only.
+    5. Route lookback-deficient edge rows (NaNs at segment starts) to
+       data/features/gap_edge_excluded_rows.parquet.
+    6. Fit StandardScaler strictly on normal train retained rows.
+    7. Scale retained features across all splits.
     8. Save all parquet datasets and fitted model artifacts.
     """
     splits_path = Path(splits_dir)
@@ -616,12 +608,14 @@ def run_feature_pipeline(
     models_path.mkdir(parents=True, exist_ok=True)
 
     logger.info("Loading raw split parquet files from %s...", splits_path)
-    train_raw = pd.read_parquet(splits_path / "train.parquet")
-    val_raw = pd.read_parquet(splits_path / "val.parquet")
-    test_raw = pd.read_parquet(splits_path / "test.parquet")
-    holdout_raw = pd.read_parquet(splits_path / "spatial_holdout_stations.parquet")
+    raw_splits = {
+        "train": pd.read_parquet(splits_path / "train.parquet"),
+        "val": pd.read_parquet(splits_path / "val.parquet"),
+        "test": pd.read_parquet(splits_path / "test.parquet"),
+        "spatial_holdout": pd.read_parquet(splits_path / "spatial_holdout_stations.parquet"),
+    }
 
-    train_stations = sorted(train_raw["station_id"].unique().tolist())
+    train_stations = sorted(raw_splits["train"]["station_id"].unique().tolist())
     logger.info("Identified %d operational training stations: %s", len(train_stations), train_stations)
 
     # 1. Build & Save Spatial Neighbors
@@ -632,82 +626,133 @@ def run_feature_pipeline(
     logger.info("Saved spatial neighbor mapping to %s", neighbors_file)
 
     # 2. Fit Mahalanobis Model on Normal Train Rows
-    mahalanobis_stats = fit_mahalanobis_model(train_raw)
+    mahalanobis_stats = fit_mahalanobis_model(raw_splits["train"])
     mahalanobis_file = models_path / "mahalanobis_stats.joblib"
     joblib.dump(mahalanobis_stats, mahalanobis_file)
     logger.info("Saved Mahalanobis model stats to %s", mahalanobis_file)
 
-    # Combine operational splits for reference buddy telemetry
-    operational_ref = pd.concat([train_raw, val_raw, test_raw], axis=0, ignore_index=True)
+    # 3. Segregate Tier 1 exclusions and map exclusion timestamps per split
+    tier1_excluded_list: List[pd.DataFrame] = []
+    clean_splits: Dict[str, pd.DataFrame] = {}
+    excluded_timestamps_by_station: Dict[str, List[pd.Timestamp]] = {}
 
-    # 3. Engineer Features for All Splits
-    logger.info("Engineering features for TRAIN split (%d rows)...", len(train_raw))
-    train_eng = engineer_split_features(train_raw, neighbor_mapping, mahalanobis_stats, train_raw)
+    for split_name, df_raw in raw_splits.items():
+        is_tier1 = (
+            df_raw["anomaly_type"].isin(["communication_dropout", "data_corruption"])
+            | df_raw["temperature_c"].isna()
+            | df_raw["pressure_hpa"].isna()
+            | df_raw["humidity_pct"].isna()
+        )
+        tier1_excl = df_raw[is_tier1].copy()
+        tier1_excl["split"] = split_name
+        tier1_excluded_list.append(tier1_excl)
 
-    logger.info("Engineering features for VAL split (%d rows)...", len(val_raw))
-    val_eng = engineer_split_features(val_raw, neighbor_mapping, mahalanobis_stats, val_raw)
+        for _, row in tier1_excl.iterrows():
+            st = row["station_id"]
+            ts = pd.to_datetime(row["timestamp"])
+            excluded_timestamps_by_station.setdefault(st, []).append(ts)
 
-    logger.info("Engineering features for TEST split (%d rows)...", len(test_raw))
-    test_eng = engineer_split_features(test_raw, neighbor_mapping, mahalanobis_stats, test_raw)
+        clean = df_raw[~is_tier1].copy()
+        clean["timestamp"] = pd.to_datetime(clean["timestamp"])
+        clean_splits[split_name] = clean.sort_values(["station_id", "timestamp"]).reset_index(drop=True)
 
-    logger.info("Engineering features for SPATIAL HOLDOUT split (%d rows)...", len(holdout_raw))
-    holdout_eng = engineer_split_features(holdout_raw, neighbor_mapping, mahalanobis_stats, operational_ref)
+    # Convert exclusion timestamps to numpy datetime64 arrays for fast search
+    excl_ts_array_by_st = {
+        st: np.array([ts.to_datetime64() for ts in tss])
+        for st, tss in excluded_timestamps_by_station.items()
+    }
 
-    # 4. Fit Scaler ONLY on Normal Train Rows
-    scaler = fit_feature_scaler(train_eng)
+    # Clean operational reference telemetry for buddy checks
+    op_clean_ref = pd.concat(
+        [clean_splits["train"], clean_splits["val"], clean_splits["test"]],
+        axis=0,
+        ignore_index=True,
+    )
+
+    # 4. Engineer features for each clean split
+    engineered_splits: Dict[str, pd.DataFrame] = {}
+    for split_name, clean_df in clean_splits.items():
+        ref = op_clean_ref if split_name == "spatial_holdout" else clean_df
+        logger.info("Engineering features for split '%s' (%d clean rows)...", split_name, len(clean_df))
+        eng = engineer_split_features(
+            clean_df,
+            neighbor_mapping,
+            mahalanobis_stats,
+            excl_ts_array_by_st,
+            reference_telemetry=ref,
+        )
+        engineered_splits[split_name] = eng
+
+    # 5. Route edge rows (missing lookback context) to gap_edge_excluded_rows.parquet
+    gap_edge_excluded_list: List[pd.DataFrame] = []
+    retained_splits: Dict[str, pd.DataFrame] = {}
+
+    for split_name, eng_df in engineered_splits.items():
+        is_edge = eng_df[ENGINEERED_FEATURE_COLS].isna().any(axis=1)
+        edge_excl = eng_df[is_edge].copy()
+        edge_excl["split"] = split_name
+        gap_edge_excluded_list.append(edge_excl)
+
+        retained = eng_df[~is_edge].copy()
+        retained_splits[split_name] = retained
+        logger.info(
+            "Split '%s': %d retained rows, %d gap edge rows excluded.",
+            split_name,
+            len(retained),
+            len(edge_excl),
+        )
+
+    # 6. Fit StandardScaler strictly on normal train retained rows
+    scaler = fit_feature_scaler(retained_splits["train"])
     scaler_file = models_path / "feature_scaler.joblib"
     joblib.dump(scaler, scaler_file)
     logger.info("Saved fitted feature scaler to %s", scaler_file)
 
-    # 5. Apply Scaling to All Splits
-    logger.info("Applying feature scaling across all splits...")
-    train_scaled = apply_feature_scaling(train_eng, scaler)
-    val_scaled = apply_feature_scaling(val_eng, scaler)
-    test_scaled = apply_feature_scaling(test_eng, scaler)
-    holdout_scaled = apply_feature_scaling(holdout_eng, scaler)
+    # 7. Apply scaling across all retained splits
+    final_scaled_splits: Dict[str, pd.DataFrame] = {}
+    for split_name, ret_df in retained_splits.items():
+        logger.info("Applying feature scaling to '%s' retained split...", split_name)
+        scaled_df = apply_feature_scaling(ret_df, scaler)
+        final_scaled_splits[split_name] = scaled_df
 
-    # 6. Segregate Tier 1 Excluded Rows
-    tier1_fault_types = ["communication_dropout", "data_corruption"]
-    tier1_excluded_list: List[pd.DataFrame] = []
-
-    split_dfs = {
-        "train": train_scaled,
-        "val": val_scaled,
-        "test": test_scaled,
-        "spatial_holdout": holdout_scaled,
-    }
-
-    final_splits: Dict[str, pd.DataFrame] = {}
-
-    for split_name, s_df in split_dfs.items():
-        is_tier1 = s_df["anomaly_type"].isin(tier1_fault_types) | s_df["temperature_c"].isna()
-        excluded = s_df[is_tier1].copy()
-        excluded["split"] = split_name
-        tier1_excluded_list.append(excluded)
-
-        retained = s_df[~is_tier1].copy()
-        final_splits[split_name] = retained
-        logger.info(
-            "Split '%s': %d rows retained, %d rows excluded for Tier 1.",
-            split_name,
-            len(retained),
-            len(excluded),
-        )
-
-    # Save Tier 1 Excluded Rows
-    tier1_excluded_df = pd.concat(tier1_excluded_list, axis=0, ignore_index=True)
-    tier1_excluded_file = features_path / "tier1_excluded_rows.parquet"
-    tier1_excluded_df.to_parquet(tier1_excluded_file, index=False)
-    logger.info("Saved Tier 1 excluded rows (%d rows) to %s", len(tier1_excluded_df), tier1_excluded_file)
-
-    # Save Final Feature Splits
-    for split_name, s_df in final_splits.items():
+        # Save split parquet
         out_file = features_path / f"{split_name}.parquet"
-        s_df.to_parquet(out_file, index=False)
-        logger.info("Saved %s features to %s (%d rows, %d cols)", split_name, out_file, len(s_df), len(s_df.columns))
+        scaled_df.to_parquet(out_file, index=False)
+        logger.info("Saved %s to %s (%d rows, %d cols)", split_name, out_file, len(scaled_df), len(scaled_df.columns))
 
-    logger.info("Feature engineering pipeline completed successfully!")
-    return final_splits
+    # 8. Save excluded row datasets
+    tier1_excluded_df = pd.concat(tier1_excluded_list, axis=0, ignore_index=True)
+    tier1_file = features_path / "tier1_excluded_rows.parquet"
+    tier1_excluded_df.to_parquet(tier1_file, index=False)
+    logger.info("Saved %d Tier 1 excluded rows to %s", len(tier1_excluded_df), tier1_file)
+
+    gap_edge_excluded_df = pd.concat(gap_edge_excluded_list, axis=0, ignore_index=True)
+    gap_edge_file = features_path / "gap_edge_excluded_rows.parquet"
+    gap_edge_excluded_df.to_parquet(gap_edge_file, index=False)
+    logger.info("Saved %d gap edge excluded rows to %s", len(gap_edge_excluded_df), gap_edge_file)
+
+    # 9. Audit total row count integrity
+    logger.info("=== Final Row Count Balance Audit ===")
+    for split_name in raw_splits.keys():
+        n_raw = len(raw_splits[split_name])
+        n_tier1 = len(tier1_excluded_df[tier1_excluded_df["split"] == split_name])
+        n_edge = len(gap_edge_excluded_df[gap_edge_excluded_df["split"] == split_name])
+        n_retained = len(final_scaled_splits[split_name])
+        total_accounted = n_tier1 + n_edge + n_retained
+        logger.info(
+            "Split '%s': raw=%d == tier1(%d) + gap_edge(%d) + retained(%d) = %d [MATCH: %s]",
+            split_name,
+            n_raw,
+            n_tier1,
+            n_edge,
+            n_retained,
+            total_accounted,
+            n_raw == total_accounted,
+        )
+        assert n_raw == total_accounted, f"Row count mismatch in split {split_name}!"
+
+    logger.info("Feature engineering pipeline completed successfully with full gap isolation!")
+    return final_scaled_splits
 
 
 if __name__ == "__main__":
