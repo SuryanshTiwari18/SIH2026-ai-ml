@@ -62,7 +62,7 @@ from src.skyguard_pipeline import SkyGuardPipeline
 # 1. Initialize pipeline once at application startup (loads all 8 model artifacts into memory)
 pipeline = SkyGuardPipeline()
 
-# 2. Ingest an incoming telemetry record
+# 2. Ingest an incoming telemetry record (exact verified observation from data/splits/test.parquet)
 telemetry_row = {
     "station_id": "AWS_IND_C02",
     "timestamp": "2026-07-22 01:20:00",

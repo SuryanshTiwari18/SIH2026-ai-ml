@@ -71,7 +71,7 @@ Critically, the generator schedules **5 genuine extreme weather phenomena** ($1,
 ### 2.3 Real Problem Found & Fixed: The Impossible Psychrometric Spec
 - **The Bug**: The original problem taxonomy specified `cross_sensor_inconsistency` as "dew point exceeding dry-bulb air temperature ($T_d > T$) while relative humidity remains valid ($RH \le 100\%$)".
 - **The Mathematical Reality**: Under the August-Roche-Magnus formulation, if $RH \le 100\%$, then $\ln(RH/100) \le 0$. Consequently, $\gamma(T, RH) \le \frac{17.67 T}{T + 243.5}$, which mathematically guarantees that $T_d \le T$. Forcing $T_d > T$ while enforcing $RH \le 100\%$ is mathematically impossible unless supersaturation ($RH > 100\%$) or unphysical imaginary numbers are introduced.
-- **The Resolution**: We reformulated `cross_sensor_inconsistency` as a **multivariate thermodynamic covariance outlier**: injecting physically possible univariate values (e.g., $T = 42.0^\circ\text{C}$ paired with $RH = 85.0\%$ in an arid zone) that violate the joint covariance structure ($\Sigma_{s,h}$) without exceeding univariate limits or violating $T_d \le T$.
+- **The Resolution**: We reformulated `cross_sensor_inconsistency` as a **multivariate thermodynamic covariance outlier**: injecting physically possible univariate values (for example, an illustrative unphysical pairing like $T = 42.0^\circ\text{C}$ paired with $RH = 85.0\%$ in an arid zone, as noted in `docs/EDA_INSIGHTS.md`) that violate the joint covariance structure ($\Sigma_{s,h}$) without exceeding univariate limits or violating $T_d \le T$.
 
 ---
 
@@ -114,9 +114,9 @@ Based on EDA recipes, [`src/features.py`](file:///d:/SIH/src/features.py) extrac
 - **Spatial Buddy Residuals**: $\Delta T_{\text{buddy}} = |T_i - T_{\text{nearest}}|$ and $\Delta P_{\text{cluster}} = P_i - \text{median}(P_{\text{neighbors}})$.
 
 ### 4.1 Real Problem Found & Fixed: Sentinel-Value Leakage
-- **The Bug**: In the initial feature engineering prototype, first-difference derivatives ($\Delta T_t = T_t - T_{t-1}$) were computed across raw telemetry before isolating Tier 1 failures. When a `data_corruption` event occurred (e.g. $T_t = -999.0^\circ\text{C}$), the corruption step itself was marked for Tier 1 exclusion. However, the *subsequent* uncorrupted observation ($T_{t+1} = 26.5^\circ\text{C}$) computed its derivative as:
-  $$\Delta T_{t+1} = 26.5 - (-999.0) = +1025.5^\circ\text{C}$$
-  This leaked an extreme $+1025.5^\circ\text{C}$ spike into an innocent normal observation, corrupting the feature distributions and causing downstream models to flag clean rows as hardware glitches.
+- **The Bug**: In the initial feature engineering prototype, first-difference derivatives ($\Delta T_t = T_t - T_{t-1}$) were computed across raw telemetry before isolating Tier 1 failures. When a `data_corruption` event occurred on station `AWS_IND_H04` at timestamp `2026-06-13 02:10:00` ($T_t = -999.0^\circ\text{C}$), the corruption step itself was marked for Tier 1 exclusion. However, the *subsequent* uncorrupted normal observation at `2026-06-13 02:20:00` ($T_{t+1} = 15.217^\circ\text{C}$) computed its derivative as:
+  $$\Delta T_{t+1} = 15.217 - (-999.0) = +1014.217^\circ\text{C}$$
+  This leaked an extreme $+1014.217^\circ\text{C}$ spike directly into an innocent normal observation, corrupting the feature distributions and causing downstream models to flag clean rows as hardware glitches.
 - **The Resolution**:
   1. **Tier 1 Exclusion Prior to Feature Computation**: Telemetry containing communication dropouts or data corruptions is quarantined into `data/features/tier1_excluded_rows.parquet` *before* computing derivatives or rolling variances.
   2. **Segment-Bounded Lookback & Gap Isolation**: Any time jump exceeding 10 minutes initiates a new segment boundary. No derivative or rolling window is permitted to calculate across an exclusion boundary.
