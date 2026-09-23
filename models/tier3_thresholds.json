@@ -1,0 +1,6 @@
+{
+  "mahalanobis_threshold": 6.5,
+  "mahalanobis_p998_train": 6.3371,
+  "buddy_delta_threshold": 2.0,
+  "buddy_peer_threshold": 2.0
+}
