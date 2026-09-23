@@ -1,8 +1,8 @@
 {
-  "rule_name": "hierarchical_consensus",
-  "tier1_policy": "deterministic_physical_override",
-  "tier2_policy": "require_spatial_isolation",
-  "tier3_policy": "autonomous_multivariate_trigger",
+  "rule_name": "gated_spatial_consensus",
+  "tier1_policy": "deterministic_physical_override (ungated)",
+  "tier2_policy": "require_spatial_isolation (isolated_deviation == True)",
+  "tier3_policy": "require_spatial_isolation (isolated_deviation == True)",
   "unflagged_tier1_only_policy": "insufficient_context",
-  "description": "Tier 1 physical bounds flag = always confirmed anomaly. Tier 2 temporal alarm confirmed iff isolated_deviation == True; suppressed otherwise. Tier 3 multivariate Mahalanobis and buddy checks trigger autonomously. Unflagged gap edge rows marked as insufficient_context."
+  "description": "Tier 1 physical bounds flag = always confirmed anomaly (ungated). Tier 2 temporal alarm confirmed iff isolated_deviation == True; suppressed otherwise. Tier 3 multivariate Mahalanobis & buddy flags confirmed iff isolated_deviation == True; suppressed otherwise. Unflagged gap edge rows marked as insufficient_context."
 }
