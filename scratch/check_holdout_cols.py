@@ -1,0 +1,10 @@
+import pandas as pd
+df = pd.read_parquet('data/tier4_results/spatial_holdout.parquet')
+print('Value counts of anomaly_type in spatial_holdout.parquet:')
+print(df['anomaly_type'].value_counts(dropna=False))
+print('Value counts of is_anomaly in spatial_holdout.parquet:')
+print(df['is_anomaly'].value_counts(dropna=False))
+print('Total rows:', len(df))
+print('Sum of anomalies:', df['anomaly_type'].value_counts().sum())
+print('Normal rows:', df['anomaly_type'].isna().sum())
+print('Total sum:', df['anomaly_type'].value_counts().sum() + df['anomaly_type'].isna().sum())
