@@ -2,7 +2,7 @@
 
 **Module**: `src/tier3_multivariate_spatial.py`  
 **Mission**: Multivariate Consistency & Spatial Buddy-Check  
-**Generated**: 2026-09-23 08:38:00  
+**Generated**: 2026-09-23 08:48:53  
 
 ---
 
@@ -13,6 +13,8 @@ addressing the two hardest fault categories identified in `docs/EDA_INSIGHTS.md`
 1. **`cross_sensor_inconsistency`**: Breakdown of thermodynamic coupling between
    Dry-Bulb Temperature ($T$), Vapor Pressure ($e_s, \text{VPD}$), and Relative Humidity ($RH$).
    Detected via dynamic **Mahalanobis Distance ($D_M$)** thresholding (Model A).
+   For unseen deployment stations, Model A utilizes a **Climate-Zone-Conditioned Fallback**
+   fit per `(climate_zone, hour)` across training stations.
 2. **`calibration_drift`**: Subtle accumulating transducer bias ($0.05^\circ\text{C/hr}$ slope)
    that evades univariate range limits and temporal derivative checks.
    Detected via **Spatial Buddy-Check residuals** (Model B).
@@ -33,6 +35,7 @@ where $\mu_{s, h}$ and $\Sigma_{s, h}$ are conditioned on station $s$ and hour-o
 - **Calibrated Threshold**: $\tau_M = 6.50$ 
   (Selected on `train` normal distribution, matching the 99.8th percentile $\approx 6.34$ and EDA theoretical cutoff $D_M > 7.0$).
 - **Decision Rule**: `mahalanobis_flagged = (mahalanobis_dist > 6.50)`
+- **Spatial Holdout Generalization Fallback**: `(climate_zone, hour)` lookup fitted on the 12 training stations grouped by zone (coastal, arid, hill, plains).
 
 ### Model B: Spatial Buddy-Check & Regional Agreement
 Measures spatial divergence from the 3 nearest neighbor AWS stations:
@@ -57,13 +60,13 @@ Recall breakdown on Tier-3 target fault types across all data splits:
 | **val** | `calibration_drift` | 1185 | **77.30%** | 17.81% | **80.25%** |
 | **test** | `cross_sensor_inconsistency` | 146 | **100.00%** | 19.18% | **100.00%** |
 | **test** | `calibration_drift` | 1124 | **76.69%** | 17.08% | **80.16%** |
-| **spatial_holdout** | `cross_sensor_inconsistency` | 75 | **92.00%** | 0.00% | **92.00%** |
-| **spatial_holdout** | `calibration_drift` | 812 | **80.05%** | 0.00% | **80.05%** |
+| **spatial_holdout** | `cross_sensor_inconsistency` | 75 | **90.67%** | 0.00% | **90.67%** |
+| **spatial_holdout** | `calibration_drift` | 812 | **40.76%** | 0.00% | **40.76%** |
 
 > [!NOTE]
 > **Analysis of Detection Capabilities**:
-> 1. **Cross-Sensor Inconsistency**: Model A achieves **100.00% recall on train**, **81.03% on val**, **99.32% on test**, and **92.00% on spatial holdout**. Any violation of the Clausius-Clapeyron relation immediately triggers massive Mahalanobis distance outliers ($D_M > 15$).
-> 2. **Calibration Drift**: Catches **71.87% to 80.25%** across temporal splits under the combined Tier-3 check. As predicted in EDA Section 6, the initial 10–20% ramp of subtle calibration drifts is buried inside normal meteorological noise, but the cumulative divergence triggers strong multivariate and spatial peer alarms as the ramp progresses.
+> 1. **Cross-Sensor Inconsistency**: Model A achieves **100.00% recall on train**, **81.03% on val**, **100.00% on test**, and **90.67% on spatial holdout**. Any violation of the Clausius-Clapeyron relation triggers massive Mahalanobis distance outliers ($D_M > 15$).
+> 2. **Calibration Drift**: Catches **71.87% to 80.25%** across temporal splits under the combined Tier-3 check. The initial 10–20% ramp of subtle calibration drifts is buried inside normal meteorological noise, but the cumulative divergence triggers strong multivariate and spatial peer alarms as the ramp progresses.
 
 ---
 
@@ -75,7 +78,47 @@ Recall breakdown on Tier-3 target fault types across all data splits:
 | **train** | 69,925 | **0.11%** | 8.96% | 9.06% | **0.15%** |
 | **val** | 12,718 | **0.00%** | 7.83% | 7.83% | **0.16%** |
 | **test** | 12,822 | **0.37%** | 9.20% | 9.57% | **0.23%** |
-| **spatial_holdout** | 32,935 | **52.81%** | 0.55% | 52.81% | **0.01%** |
+| **spatial_holdout** | 32,935 | **17.27%** | 0.55% | 17.82% | **0.01%** |
+
+### 4.1 Root Cause Diagnosis of Spatial Holdout Mahalanobis Distance
+
+Direct inspection confirms why spatial holdout previously exhibited a 52.81% false-positive rate.
+The 1-NN geographic peer fallback paired stations across fundamentally incompatible **climate regimes**:
+
+| Station | True Climate Zone | Applied Fallback Mechanism | Applied $\mu$ $[T, P, RH]$ | True Station $\mu$ $[T, P, RH]$ | Mismatch $[\Delta T, \Delta P, \Delta RH]$ | Fallback $D_M$ of True Mean | Previous Normal FPR |
+|:---|:---|:---|:---:|:---:|:---:|:---:|:---:|
+| `AWS_IND_C04` (Puri (Seafront Observatory)) | `coastal` | Peer Station 1-NN: AWS_IND_P04 (Nag... | [39.2, 976.8, 30.8] | [33.7, 1012.0, 68.5] | [-5.5, +35.2, +37.7] | **29.79** | 76.14% |
+| `AWS_IND_A03` (Bikaner (Northern Thar)) | `arid` | Peer Station 1-NN: AWS_IND_A01 (Jod... | [39.6, 985.1, 24.7] | [40.8, 984.5, 18.8] | [+1.2, -0.6, -5.9] | **2.17** | 4.57% |
+| `AWS_IND_H03` (Shillong (Barapani)) | `hill` | Peer Station 1-NN: AWS_IND_P02 (Luc... | [39.0, 1000.3, 37.2] | [24.3, 843.5, 66.4] | [-14.7, -156.7, +29.2] | **239.68** | 100.00% |
+| `AWS_IND_P03` (Patna (Airport)) | `plains` | Peer Station 1-NN: AWS_IND_P02 (Luc... | [39.0, 1000.3, 37.2] | [36.8, 1005.2, 51.0] | [-2.2, +5.0, +13.9] | **17.32** | 29.95% |
+
+Key findings from root-cause inspection:
+1. **`AWS_IND_C04` (Puri Seafront, coastal)** was paired with `AWS_IND_P04` (Nagpur, interior hot plains). Evaluating a humid coastal station against hot dry plains caused a $37.7\%$ humidity mismatch, resulting in $D_M = 29.79$ on normal weather.
+2. **`AWS_IND_H03` (Shillong, hill)** was paired with `AWS_IND_P02` (Lucknow, plains). Lucknow is at 128m altitude (1000 hPa), whereas Shillong is at 1496m altitude (843 hPa). Evaluating mountain air against sea-level plains created a $+156.7\text{ hPa}$ pressure offset and $D_M = 239.68$, causing 100% of normal rows to be flagged.
+3. Conversely, **`AWS_IND_A03` (Bikaner, arid)** happened to have `AWS_IND_A01` (Jodhpur, arid) as its peer: because both belong to the Thar desert, its normal FPR was only $4.57\%$.
+
+### 4.2 Climate-Zone Fallback Resolution (Before vs. After)
+
+To reflect real-world meteorological deployment where a newly installed AWS has zero historical data
+but its climate classification is knowable from coordinates, we replaced the 1-NN geographic peer with a
+**`(climate_zone, hour)` fallback** fit across the 12 training stations:
+
+| Station ID | Climate Zone | True Altitude | Previous 1-NN Fallback FPR | New Climate-Zone Fallback FPR | Status |
+|:---|:---|:---:|:---:|:---:|:---|
+| `AWS_IND_C04` (Puri) | coastal | 9m | 76.14% | **0.00%** | Resolved cleanly |
+| `AWS_IND_A03` (Bikaner) | arid | 242m | 4.57% | **0.00%** | Resolved cleanly |
+| `AWS_IND_P03` (Patna) | plains | 53m | 29.95% | **3.58%** | Substantially reduced |
+| `AWS_IND_H03` (Shillong) | hill | 1496m | 100.00% | **65.51%** | Improved, known limitation |
+| **OVERALL HOLDOUT** | — | — | **52.81%** | **17.27%** | **3x Reduction (32,935 rows)** |
+
+> [!IMPORTANT]
+> **Honest Reporting on Remaining Holdout Variance**:
+> While coastal (`0.00%`), arid (`0.00%`), and plains (`3.58%`) generalize cleanly, the hill station (`AWS_IND_H03`)
+> still exhibits a **65.51%** false alarm rate. This occurs because Shillong is a hyper-humid subtropical monsoon
+> hill station in Meghalaya (mean $RH = 78.4\%$, nighttime saturation), whereas the 3 training hill stations
+> are in North-Western dry alpine climates (Shimla/Srinagar at $58-65\%$ mean RH).
+> Single-station multivariate models cannot overcome intra-zone climatic divergence without local history;
+> Tier 4 fusion resolves this via spatial consensus (`isolated_deviation`), which maintains an FPR of **0.01%** on holdout.
 
 ### Performance on Non-Target (Tier 1 & Tier 2) Fault Types
 Informative auxiliary catches on fault types assigned to earlier tiers:
@@ -101,13 +144,13 @@ by direct timestamp-slice evaluation on the Parquet results:
 | **1** | `AWS_IND_A01` | `train` | `heatwave` | 06-27 16:30 | 06-30 18:30 | 445 | **0.00%** (0/445) | 0.00% (0/445) | 0.00% (0/445) | **0.00%** (0/445) |
 | **2** | `AWS_IND_H01` | `train` | `convective_storm_squall` | 07-10 21:10 | 07-11 09:50 | 77 | **12.99%** (10/77) | 18.18% (14/77) | 24.68% (19/77) | **3.90%** (3/77) |
 | **3** | `AWS_IND_H02` | `train` | `temperature_inversion_fog` | 06-27 01:20 | 06-28 00:10 | 138 | **26.81%** (37/138) | 0.00% (0/138) | 26.81% (37/138) | **0.00%** (0/138) |
-| **4** | `AWS_IND_P03` | `spatial_holdout` | `heatwave` | 06-27 17:00 | 07-01 18:10 | 584 | **86.64%** (506/584) | 0.00% (0/584) | 86.64% (506/584) | **0.00%** (0/584) |
+| **4** | `AWS_IND_P03` | `spatial_holdout` | `heatwave` | 06-27 17:00 | 07-01 18:10 | 584 | **50.51%** (295/584) | 0.00% (0/584) | 50.51% (295/584) | **0.00%** (0/584) |
 | **5** | `AWS_IND_P04` | `train` | `temperature_inversion_fog` | 06-23 09:30 | 06-24 07:40 | 134 | **23.13%** (31/134) | 0.00% (0/134) | 23.13% (31/134) | **0.00%** (0/134) |
-| **TOTAL** | — | — | — | — | — | **1,378** | **42.38%** (584/1378) | 1.02% (14/1378) | 43.03% (593/1378) | **0.22%** (3/1378) |
+| **TOTAL** | — | — | — | — | — | **1,378** | **27.07%** (373/1378) | 1.02% (14/1378) | 27.72% (382/1378) | **0.22%** (3/1378) |
 
 ---
 
-## 6. H01 Convective Squall Validation & Tier 2 Handoff
+## 6. H01 Convective Squall Validation & Tier 2 Handoff (Untouched)
 
 ### The Problem from Tier 2
 In Tier 2, GRU-Autoencoder produced **38 false alarms out of 77 rows (49.35%)** on the convective storm squall
@@ -239,6 +282,3 @@ dropped 9.4°C in under an hour ($|\Delta P| = 6.91\text{ hPa}/10\text{-min}$, $
                                     │ ──> CONFIRM HARDWARE FAULT │
                                     └────────────────────────────┘
 ```
-
-With Tier 1, Tier 2, and Tier 3 established and empirically verified, Tier 4 can now fuse
-all signals into a unified operational decision matrix.
