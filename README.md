@@ -42,6 +42,13 @@ All metrics are extracted directly from [`docs/FINAL_EVALUATION.md`](file:///d:/
 - **Predictive Lead Time**: Detects sensor calibration drift with an average **+5.5 hours of advance warning** prior to formal static alerting.
 - **Inference Latency**: Mean = **8.99 ms**, Median (P50) = **0.09 ms**, P99 = **31.74 ms** (beating the $<500\text{ ms}$ operational SLA by **15.7×**). Sequential throughput: **111.3 rows/sec**.
 
+### 2.3 Real-World Validation (Open-Meteo 90-Day Audit)
+Documented in [`docs/REAL_DATA_VALIDATION.md`](file:///d:/SIH/docs/REAL_DATA_VALIDATION.md):
+- **Data Source**: Open-Meteo Historical Archive API (`archive-api.open-meteo.com`) capturing 90 days (2024-06-01 to 2024-08-29, peak monsoon) across all 16 real station coordinates ($34,560\text{ rows}$ target volume; **34,177 evaluated rows** excluding 383 cold-start warmup steps).
+- **Out-of-Distribution Comparison**: Real-world combined flagged rate was **0.47%** (160 flagged rows: 136 Track 1 operational alerts at **0.40%**, 24 Track 2 maintenance queues at **0.07%**), which is significantly closer to the synthetic test split normal FPR (**2.12%**) than to the synthetic spatial holdout normal FPR (**21.50%**), where Track 2 was inflated by unseen holdout geography.
+- **Sentinel Collision Bug Resolved**: In `src/skyguard_pipeline.py`, `999.0` was mistakenly hardcoded as a missing-value sentinel token instead of `999.9`, colliding with legitimate monsoon low pressures and falsely flagging 52 real rows across 4 stations as `data_corruption`; fixing this to exact per-channel empirical sentinels was verified with all 52 rows passing cleanly as normal (dropping total flagged rows from 212 to 160).
+- **Shillong Microclimate Cross-Validation**: `AWS_IND_H03` (Shillong) exhibited an empirical real-data flagged rate of **2.34%** (50 rows), providing independent real-world cross-validation of the elevation-mismatch limitation (>1,100m offset against assigned Gangetic plains neighbors) already identified in the synthetic spatial holdout evaluation.
+
 ---
 
 ## 3. Quick Start: Running the Production Pipeline
@@ -164,6 +171,7 @@ SIH/
 For in-depth narrative, theoretical background, and per-tier evaluation reports, consult the dedicated documentation:
 
 - **[WALKTHROUGH.md](file:///d:/SIH/WALKTHROUGH.md)**: **The complete project narrative** — problem framing, synthetic formulation, real bugs discovered and resolved, tier-by-tier evaluation, and disclosed operational limitations.
+- **[docs/REAL_DATA_VALIDATION.md](file:///d:/SIH/docs/REAL_DATA_VALIDATION.md)**: Real-world atmospheric telemetry validation against 90 days of Open-Meteo ERA5 reanalysis across all 16 stations, auditing severe weather response and documenting the resolution of the 999.0 hPa barometric sentinel false-alarm bug.
 - **[docs/PIPELINE_USAGE.md](file:///d:/SIH/docs/PIPELINE_USAGE.md)**: Production API manual, input/output schemas, cold-start handling, and deployment configurations.
 - **[docs/FINAL_EVALUATION.md](file:///d:/SIH/docs/FINAL_EVALUATION.md)**: Final unified rollup metrics, severe weather audit, latency profiling, and self-verification checklist.
 - **[docs/DATA_DICTIONARY.md](file:///d:/SIH/docs/DATA_DICTIONARY.md)**: Telemetry schema contract and 7-fault anomaly definitions.

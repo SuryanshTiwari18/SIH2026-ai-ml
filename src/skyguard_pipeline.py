@@ -191,6 +191,12 @@ class SkyGuardPipeline:
         self.network_latest.clear()
         logger.info("Pipeline internal streaming state reset.")
 
+    EMPIRICAL_SENTINELS: Dict[str, Set[float]] = {
+        "temperature_c": {-999.0, -99.9, 999.9, 9999.0},
+        "pressure_hpa": {-999.0, -99.9, 9999.0},  # Note: 999.0 and 999.9 are excluded (valid sea-level pressures)
+        "humidity_pct": {-999.0, -25.0, 160.0},
+    }
+
     def _check_tier1(
         self,
         station_id: str,
@@ -200,9 +206,11 @@ class SkyGuardPipeline:
         history: List[dict],
     ) -> Tuple[bool, Optional[str]]:
         """Tier 1: Deterministic Physical Quality Control."""
-        # Sentinel checks
-        for val in [t, p, rh]:
-            if pd.isna(val) or val in [-999.0, 999.0, 9999.0, -9999.0]:
+        # Sentinel checks with exact matching (0.01 tolerance for floating-point safety)
+        for val, col in [(t, "temperature_c"), (p, "pressure_hpa"), (rh, "humidity_pct")]:
+            if pd.isna(val):
+                return True, "sentinel_value"
+            if any(abs(val - s) < 0.01 for s in self.EMPIRICAL_SENTINELS[col]):
                 return True, "sentinel_value"
 
         # Physical range checks
@@ -573,7 +581,14 @@ class SkyGuardPipeline:
             top_f1, val1 = ranked[0]
             top_f2, val2 = ranked[1]
 
-            if top_f1 == "mahalanobis_dist":
+            if hard_rule_flagged and val1 < 0.10:
+                if gru_score > 5.0:
+                    rationale = f"Flagged by Track 1 Gated Hard Rule: confirmed isolated spatial deviation with high temporal reconstruction error (GRU={gru_score:.2f}, IF={if_score:.3f})."
+                elif if_score > self.tier2_thresholds["isolation_forest"]["threshold"]:
+                    rationale = f"Flagged by Track 1 Gated Hard Rule: confirmed isolated spatial deviation with elevated Isolation Forest score (IF={if_score:.3f})."
+                else:
+                    rationale = f"Flagged by Track 1 Gated Hard Rule: confirmed isolated spatial deviation (D_M={dm:.2f}, IF={if_score:.3f})."
+            elif top_f1 == "mahalanobis_dist":
                 rationale = f"Flagged primarily due to elevated Mahalanobis distance (D_M={dm:.2f}, SHAP: {val1:+.2f}), indicating multivariate thermodynamic inconsistency."
             elif top_f1 == "if_score":
                 rationale = f"Flagged primarily due to elevated Isolation Forest score (IF={if_score:.3f}, SHAP: {val1:+.2f}) and GRU error (GRU={gru_score:.2f}), indicating transient hardware spike/glitch."

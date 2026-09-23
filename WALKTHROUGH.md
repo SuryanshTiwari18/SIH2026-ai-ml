@@ -276,7 +276,54 @@ Measured over 500 individual cold-telemetry rows sampled from `test.parquet`:
 
 ---
 
-## 7. Disclosed Operational Limitations
+## 7. Real-World Validation Against Live Weather Data
+
+Documented in full detail in [`docs/REAL_DATA_VALIDATION.md`](file:///d:/SIH/docs/REAL_DATA_VALIDATION.md), this evaluation tests the frozen production `SkyGuardPipeline` against genuine atmospheric telemetry gathered from 16 real-world Indian weather stations over 90 days of peak summer monsoon.
+
+### 7.1 Why: Honest Out-of-Distribution Stress Testing
+Every feature scaler, Mahalanobis station-hour covariance matrix, and machine learning model in SkyGuard AI was calibrated on synthetic physics simulations. While synthetic evaluation established verifiable ground truth for subtle faults, real-world deployment presents unmodeled microclimates, genuine convective downdrafts, and non-Gaussian joint distributions. Rather than re-running synthetic benchmarks, this evaluation conducts an honest out-of-distribution stress test of the frozen pipeline against the real atmosphere.
+
+### 7.2 Data Source & Temporal Step Policy
+- **Data Source**: Open-Meteo Historical Archive API (`archive-api.open-meteo.com`), pulling verified ECMWF ERA5 reanalysis for the exact coordinates of all 16 AWS stations across a 90-day window (**2024-06-01 to 2024-08-29**; $N = 34,560\text{ target observations}$; **34,177 evaluated rows** after dropping 383 cold-start warmup steps).
+- **Resolution-Mismatch Disclosure**: Real-world observations are available at hourly cadence rather than the 10-minute cadence used in synthetic training. The validation pipeline ingests hourly observations directly as single sequential steps ($t, t+1, \dots$) without artificial spline or linear interpolation. Interpolating 5 intermediate synthetic points between hourly readings artificially dampens atmospheric variance ($\sigma^2 \to 0$), creating synthetic flatlines that falsely trigger `frozen_sensor` detection.
+- **Temporal Scaling Implications**: In this hourly configuration, the pipeline's rolling buffers (6 and 36 steps) span **6 hours** and **36 hours** of real-world atmospheric history (rather than 1 hour and 6 hours), and step-differences $\Delta T = T_t - T_{t-1}$ represent 1-hour physical gradients, rigorously testing the system against large diurnal swings.
+
+### 7.3 Real Problem Found & Fixed: The Sentinel Collision Bug
+- **The Bug**: Initial validation runs revealed that 52 rows were flagged as `data_corruption` (`sentinel_value`) with confidence 1.00 because `pressure_hpa == 999.0`. In `src/tier1_qc.py`, the empirical sentinel set was correctly defined as `{-999.0, -99.9, 999.9, 9999.0}` using exact membership matching. However, in `src/skyguard_pipeline.py` (line 205), the integrated runtime pipeline had hardcoded `val in [-999.0, 999.0, 9999.0, -9999.0]`. The value `999.0` was mistakenly typed with a zero instead of `999.9`, and applied generically across all three channels.
+- **The Physical Reality**: In coastal and river basin stations during monsoon depressions, surface barometric pressure routinely and legitimately drops to **999.0 hPa**. Tier 1 was falsely flagging ordinary low-pressure troughs as hardware corruptions.
+- **The Resolution**: `_check_tier1` in `src/skyguard_pipeline.py` was refactored to enforce exact per-channel empirical sentinels with a strictly bounded floating-point tolerance of $\pm 0.01$, eliminating `999.0` entirely.
+- **Verified Before/After Counts**:
+  - Across all 34,560 real observations, exactly **52 rows** had `pressure_hpa == 999.0` across 4 stations: `AWS_IND_C04` (Puri: 26 rows), `AWS_IND_C01` (Mumbai: 9 rows), `AWS_IND_C02` (Chennai: 9 rows), and `AWS_IND_P03` (Patna: 8 rows).
+  - Zero observations matched or fell near any other sentinel token (`-999.0`, `-99.9`, `9999.0`, `-25.0`, `160.0`).
+  - After the fix, **all 52 affected rows pass cleanly as normal**.
+  - Total flagged anomalies across the 90-day real dataset dropped from **212 (0.62%)** to **160 (0.47%)**, Track 1 operational alerts dropped from **188 (0.55%)** to **136 (0.40%)**, and `AWS_IND_C04` (Puri) dropped from 26 flagged rows (1.22%) to **0 flagged rows (0.00%)**.
+  - *Critical Barometric Finding on 999.9 hPa*: Real surface pressure reached `999.9 hPa` on **71 occasions** across coastal stations. While 999.9 is an impossible temperature on Earth, it is a completely ordinary barometric reading. Therefore, neither 999.0 nor 999.9 can ever be used as a pressure sentinel in operational field deployments.
+
+### 7.4 Real Severe Weather Response (Monsoon Squall Audit)
+During the 90-day monsoon period, real atmospheric extremes produced intense rate-of-change events across the network:
+- **Top Convective Temperature Drops (Rain Cooling)**: Nagpur (`AWS_IND_P04`) plunged **$-12.5^\circ\text{C}$ in 1 hour**; Bikaner (`AWS_IND_A03`) plunged **$-11.1^\circ\text{C}$ in 1 hour**; Jaisalmer (`AWS_IND_A02`) plunged **$-9.8^\circ\text{C}$ in 1 hour**; Rajkot (`AWS_IND_A04`) plunged **$-9.6^\circ\text{C}$ in 1 hour**; Jodhpur (`AWS_IND_A01`) plunged **$-9.2^\circ\text{C}$ in 1 hour**.
+- **Top Barometric Pressure Drops**: Shimla (`AWS_IND_H01`) dropped **$-3.1\text{ hPa}$**, **$-2.9\text{ hPa}$**, **$-2.7\text{ hPa}$**, **$-2.6\text{ hPa}$**, and **$-2.5\text{ hPa}$ in 1 hour** during monsoonal lows.
+- **Operational Verification**: All 10 extreme weather events were correctly classified as **`normal` (Flagged = NO)**. Because neighboring regional stations experienced correlated shifts, the Spatial Consensus Gate cleared them (`isolated_deviation == False`), preventing false operational alarms exactly as observed during the synthetic H01 squall benchmark.
+
+### 7.5 Real-World Confirmation of the Shillong Limitation
+- Station `AWS_IND_H03` (Shillong) exhibited an empirical real-data flagged rate of **2.34%** (50 rows), accounting for nearly a third of all real-world flags across the 16 stations.
+- This is consistent with (and cross-validates) the synthetic spatial-holdout climate-mismatch finding documented in Tier 3: Shillong's elevated altitude (1,496m) and subtropical monsoon moisture (>85% RH) create persistent thermodynamic offsets against its assigned Gangetic plains neighbors (`AWS_IND_P02` Lucknow and `AWS_IND_P04` Nagpur).
+- Rather than being a new issue, this proves that the synthetic holdout evaluation was genuinely predictive of real-world operational behavior.
+
+### 7.6 The Ooty Reconciliation: Spatial Consensus Under Statistical Tension
+- **The Apparent Contradiction**: Ooty (`AWS_IND_H04`, 2,240m elevation) was hypothesized to suffer severe Mahalanobis elevation inflation similar to Shillong.
+- **The Empirical Reality**: Ooty's raw barometric pressure (~780 hPa) indeed produces high internal Tier 3 Mahalanobis distances ($D_M = 43.68$ mean, peaking at 111.04). However, **Ooty produced exactly 0 flagged rows (0.00% FPR) across all 2,136 evaluated timesteps**, maintaining a pristine **SHI = 100.0%** throughout the entire 90-day period.
+- **Mechanism of Protection**: Unlike Shillong, Ooty is paired with Southern peninsular observatories where diurnal trends are smooth. Ooty experienced `isolated_deviation == False` across 100% of rows. The Two-Track spatial consensus gate (`hard_rule_suppressed == True`) completely blocked every elevated Mahalanobis distance from generating a false alert, verifying the operational efficacy of the Two-Track architecture.
+
+### 7.7 Deployment Recommendation: Recalibration Required Prior to Production
+The operational verdict from [`docs/REAL_DATA_VALIDATION.md`](file:///d:/SIH/docs/REAL_DATA_VALIDATION.md) is direct and transparent: **YES, Targeted Recalibration Required Prior to Production Field Rollout**. While the structural pipeline architecture performed robustly (restricting real operational alerts to 0.40%), three specific statistical components require fine-tuning on real IMD historical observations before operational commissioning:
+1. **Elimination of Valid Barometric Pressures from Sentinel Lists**: Use strictly out-of-physical-range sentinels (e.g. `-999.0`, `NaN`) rather than positive three-digit tokens.
+2. **Topographic Altitude-Adjusted Spatial Buddy Norms**: Standardize surface pressure comparisons to Mean Sea Level Pressure (MSLP) or barometric altitude-corrected geopotential height before computing peer residuals $\Delta P_{\text{cluster}}$.
+3. **Multi-Year Empirical IMD Covariances (`models/mahalanobis_stats.joblib`)**: Fit station-hour $(\mu, \Sigma)$ covariances and StandardScaler features on 3+ years of actual IMD hourly telemetry across all agro-climatic subzones.
+
+---
+
+## 8. Disclosed Operational Limitations
 
 Transparency regarding edge cases is critical for operational trust in meteorology:
 
@@ -295,7 +342,7 @@ Transparency regarding edge cases is critical for operational trust in meteorolo
 
 ---
 
-## 8. Final Self-Verification Summary
+## 9. Final Self-Verification Summary
 
 | # | Verification Finding | Target Requirement | Measured System Value | Status |
 | :-: | :--- | :--- | :--- | :---: |
@@ -307,3 +354,4 @@ Transparency regarding edge cases is critical for operational trust in meteorolo
 | **6** | **H01 Squall False Alarm Suppression** | Spatial gate clears $> 90\%$ of GRU alarms | **92.11% Suppression Rate (35 / 38 cleared)** | **PASS** |
 | **7** | **Holdout Mahalanobis Stability** | Climate-zone fallback prevents divergence | **Zone fallback active; H03 isolated to Track 2** | **PASS** |
 | **8** | **Predictive Lead Time on Drift** | Advance detection prior to static failure | **+5.5 Hours Average Lead Time (EMA SHI: 84.6)** | **PASS** |
+| **9** | **Real-World Atmospheric Validation** | 90-day 16-station operational audit (Open-Meteo) | **0.47% Combined FPR (160/34,177), 0.40% Track 1; 52/52 sentinel false alarms resolved** | **PASS** |
