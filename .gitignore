@@ -33,6 +33,7 @@ Thumbs.db
 .idea/
 .gemini/
 .antigravity/
+scratch/
 
 # --- Model training artifacts (you'll hit these soon once training starts) ---
 models/*.pt
