@@ -185,6 +185,196 @@ def apply_tier1_qc(
     return res_df
 
 
+# -----------------------------------------------------------------------------
+# Tier 1B: Station-Month Climatology Bounds (Season-Safety Strategy 1)
+# -----------------------------------------------------------------------------
+DEFAULT_CLIMATOLOGY_PATH: Path = Path("data/real_climatology/station_month_climatology.json")
+
+
+def load_station_month_climatology(
+    climatology_path: Path = DEFAULT_CLIMATOLOGY_PATH,
+) -> Dict[str, Any]:
+    """Loads station-month climatology lookup table."""
+    if not climatology_path.exists():
+        logger.warning("Climatology file %s not found.", climatology_path)
+        return {}
+    with open(climatology_path, "r") as f:
+        return json.load(f)
+
+
+def apply_tier1b_climatology_qc(
+    df: pd.DataFrame,
+    climatology_data: Optional[Dict[str, Any]] = None,
+    climatology_path: Path = DEFAULT_CLIMATOLOGY_PATH,
+    sigma_multiplier: float = 3.0,
+) -> pd.DataFrame:
+    """Applies Tier 1B Station-Month Climatology Quality Control.
+
+    Layered AFTER Tier 1A universal physical bounds.
+    Flags a reading only if temperature_c falls outside:
+        [T_min(station, month) - 3 * sigma, T_max(station, month) + 3 * sigma]
+
+    Handles unseen stations (cold start) via climate-zone fallback
+    (coastal, arid, hill, plains) to prevent crashes or silent skips.
+
+    Args:
+        df: Input DataFrame containing temperature readings, timestamp/month,
+            and station identifier.
+        climatology_data: Pre-loaded climatology dictionary. If None, loads from
+            climatology_path.
+        climatology_path: Path to station_month_climatology.json.
+        sigma_multiplier: Width of sigma envelope (default 3.0).
+
+    Returns:
+        DataFrame with tier1b_flagged (bool), tier1b_t_lower (float),
+        tier1b_t_upper (float), and updated is_flagged / flag_reason.
+    """
+    if climatology_data is None:
+        climatology_data = load_station_month_climatology(climatology_path)
+
+    res_df = df.copy()
+
+    # Determine temperature column
+    temp_col = None
+    for cand in ["temperature_c", "temperature_2m", "temp"]:
+        if cand in res_df.columns:
+            temp_col = cand
+            break
+    if temp_col is None:
+        raise ValueError("DataFrame missing temperature column for Tier 1B check.")
+
+    # Determine station column
+    st_col = None
+    for cand in ["station_id", "city", "station_name"]:
+        if cand in res_df.columns:
+            st_col = cand
+            break
+
+    # Determine month
+    if "month" in res_df.columns:
+        months = res_df["month"].astype(int).to_numpy()
+    elif "timestamp" in res_df.columns:
+        months = pd.to_datetime(res_df["timestamp"]).dt.month.to_numpy()
+    elif "time" in res_df.columns:
+        months = pd.to_datetime(res_df["time"]).dt.month.to_numpy()
+    else:
+        # Default to June (6) if no timestamp present (matches synthetic simulation period)
+        months = np.full(len(res_df), 6, dtype=int)
+
+    # Station to city / zone mapping
+    meta = climatology_data.get("_metadata", {})
+    st_to_city = meta.get("station_to_city", {})
+    city_zone_map = meta.get("city_zone_map", {})
+
+    # Import station catalog for zone fallback if available
+    zone_by_st_id: Dict[str, str] = {}
+    try:
+        from src.stations import INDIAN_AWS_STATIONS
+        for st_meta in INDIAN_AWS_STATIONS:
+            zone_by_st_id[st_meta.station_id] = st_meta.climate_zone
+    except Exception:
+        pass
+
+    t_vals = res_df[temp_col].to_numpy(dtype=float)
+    n_rows = len(res_df)
+
+    t_lower = np.full(n_rows, -np.inf, dtype=float)
+    t_upper = np.full(n_rows, np.inf, dtype=float)
+    tier1b_flag = np.zeros(n_rows, dtype=bool)
+
+    if st_col is not None:
+        st_vals = res_df[st_col].astype(str).str.lower().to_numpy()
+        raw_st_ids = res_df[st_col].astype(str).to_numpy()
+    else:
+        st_vals = np.array(["zone_plains"] * n_rows)
+        raw_st_ids = st_vals
+
+    for i in range(n_rows):
+        t_i = t_vals[i]
+        if np.isnan(t_i):
+            continue
+
+        m_str = str(months[i])
+        s_id = raw_st_ids[i]
+        s_clean = st_vals[i]
+
+        # Resolution hierarchy:
+        # 1. Exact city match in climatology table (e.g. 'delhi', 'leh')
+        # 2. Known station ID mapping (e.g. 'AWS_IND_P01' -> 'delhi')
+        # 3. Known climate zone fallback (e.g. 'zone_hill', 'zone_coastal')
+        # 4. Global plains fallback ('zone_plains')
+        entry = None
+        if s_clean in climatology_data and m_str in climatology_data[s_clean]:
+            entry = climatology_data[s_clean][m_str]
+        elif s_id in st_to_city and st_to_city[s_id] in climatology_data and m_str in climatology_data[st_to_city[s_id]]:
+            entry = climatology_data[st_to_city[s_id]][m_str]
+        else:
+            # Fall back to climate zone
+            zone = None
+            if "climate_zone" in res_df.columns:
+                zone = str(res_df["climate_zone"].iloc[i]).lower()
+            elif s_id in zone_by_st_id:
+                zone = zone_by_st_id[s_id]
+            elif s_clean in city_zone_map:
+                zone = city_zone_map[s_clean]
+
+            zone_key = f"zone_{zone}" if zone else "zone_plains"
+            if zone_key in climatology_data and m_str in climatology_data[zone_key]:
+                entry = climatology_data[zone_key][m_str]
+            elif "zone_plains" in climatology_data and m_str in climatology_data["zone_plains"]:
+                entry = climatology_data["zone_plains"][m_str]
+
+        if entry is not None:
+            t_min = float(entry["temp_min"])
+            t_max = float(entry["temp_max"])
+            t_std = float(entry["temp_std"])
+
+            bound_low = t_min - sigma_multiplier * t_std
+            bound_high = t_max + sigma_multiplier * t_std
+
+            t_lower[i] = bound_low
+            t_upper[i] = bound_high
+
+            if t_i < bound_low or t_i > bound_high:
+                tier1b_flag[i] = True
+
+    res_df["tier1b_flagged"] = tier1b_flag
+    res_df["tier1b_t_lower"] = t_lower
+    res_df["tier1b_t_upper"] = t_upper
+
+    # Update is_flagged and flag_reason if present
+    if "is_flagged" in res_df.columns and "flag_reason" in res_df.columns:
+        # Tier 1A flags have strict precedence; Tier 1B updates unflagged rows
+        newly_flagged = tier1b_flag & (~res_df["is_flagged"])
+        res_df.loc[newly_flagged, "is_flagged"] = True
+        res_df.loc[newly_flagged, "flag_reason"] = "climatology_range_violation"
+    elif "is_flagged" not in res_df.columns:
+        res_df["is_flagged"] = tier1b_flag
+        res_df["flag_reason"] = np.where(tier1b_flag, "climatology_range_violation", None)
+
+    return res_df
+
+
+def apply_tier1_qc_with_tier1b(
+    df: pd.DataFrame,
+    sentinels: Optional[Dict[str, Set[float]]] = None,
+    reason_priority: str = "sentinel_first",
+    climatology_data: Optional[Dict[str, Any]] = None,
+    climatology_path: Path = DEFAULT_CLIMATOLOGY_PATH,
+    sigma_multiplier: float = 3.0,
+) -> pd.DataFrame:
+    """Full Tier 1 Physical QC: Runs universal Tier 1A bounds followed by Tier 1B Climatology."""
+    # 1. Tier 1A universal bounds (unchanged)
+    df_t1a = apply_tier1_qc(df, sentinels=sentinels, reason_priority=reason_priority)
+    # 2. Tier 1B station-month climatology bounds
+    return apply_tier1b_climatology_qc(
+        df_t1a,
+        climatology_data=climatology_data,
+        climatology_path=climatology_path,
+        sigma_multiplier=sigma_multiplier,
+    )
+
+
 def benchmark_tier1_qc_latency(
     df: pd.DataFrame,
     n_iterations: int = 50,

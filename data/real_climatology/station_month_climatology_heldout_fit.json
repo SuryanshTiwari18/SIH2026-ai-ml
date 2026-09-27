@@ -1,0 +1,1390 @@
+{
+  "delhi": {
+    "1": {
+      "temp_mean": 13.68,
+      "temp_std": 2.21,
+      "temp_min": 2.4,
+      "temp_max": 27.5,
+      "rh_mean": 70.04,
+      "rh_std": 10.75,
+      "rh_min": 20.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 17.11,
+      "temp_std": 2.78,
+      "temp_min": 4.1,
+      "temp_max": 32.5,
+      "rh_mean": 64.81,
+      "rh_std": 12.48,
+      "rh_min": 16.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 22.19,
+      "temp_std": 3.26,
+      "temp_min": 7.2,
+      "temp_max": 38.8,
+      "rh_mean": 55.29,
+      "rh_std": 13.5,
+      "rh_min": 11.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 28.87,
+      "temp_std": 2.91,
+      "temp_min": 15.3,
+      "temp_max": 44.5,
+      "rh_mean": 36.14,
+      "rh_std": 12.74,
+      "rh_min": 5.0,
+      "rh_max": 98.0
+    },
+    "5": {
+      "temp_mean": 32.55,
+      "temp_std": 2.12,
+      "temp_min": 20.6,
+      "temp_max": 45.6,
+      "rh_mean": 36.1,
+      "rh_std": 12.92,
+      "rh_min": 6.0,
+      "rh_max": 97.0
+    },
+    "6": {
+      "temp_mean": 33.12,
+      "temp_std": 2.66,
+      "temp_min": 21.6,
+      "temp_max": 45.4,
+      "rh_mean": 50.53,
+      "rh_std": 17.13,
+      "rh_min": 8.0,
+      "rh_max": 99.0
+    },
+    "7": {
+      "temp_mean": 29.89,
+      "temp_std": 2.0,
+      "temp_min": 23.9,
+      "temp_max": 42.0,
+      "rh_mean": 75.37,
+      "rh_std": 10.9,
+      "rh_min": 21.0,
+      "rh_max": 99.0
+    },
+    "8": {
+      "temp_mean": 28.77,
+      "temp_std": 1.58,
+      "temp_min": 23.8,
+      "temp_max": 39.6,
+      "rh_mean": 79.93,
+      "rh_std": 9.72,
+      "rh_min": 26.0,
+      "rh_max": 100.0
+    },
+    "9": {
+      "temp_mean": 28.13,
+      "temp_std": 1.47,
+      "temp_min": 19.6,
+      "temp_max": 37.3,
+      "rh_mean": 74.73,
+      "rh_std": 10.51,
+      "rh_min": 20.0,
+      "rh_max": 100.0
+    },
+    "10": {
+      "temp_mean": 25.83,
+      "temp_std": 1.97,
+      "temp_min": 14.2,
+      "temp_max": 37.4,
+      "rh_mean": 57.72,
+      "rh_std": 11.46,
+      "rh_min": 15.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 20.65,
+      "temp_std": 2.2,
+      "temp_min": 8.9,
+      "temp_max": 32.6,
+      "rh_mean": 59.65,
+      "rh_std": 8.78,
+      "rh_min": 14.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 15.39,
+      "temp_std": 2.51,
+      "temp_min": 2.0,
+      "temp_max": 27.9,
+      "rh_mean": 65.78,
+      "rh_std": 9.87,
+      "rh_min": 19.0,
+      "rh_max": 100.0
+    }
+  },
+  "leh": {
+    "1": {
+      "temp_mean": -14.27,
+      "temp_std": 5.73,
+      "temp_min": -33.5,
+      "temp_max": 5.3,
+      "rh_mean": 57.0,
+      "rh_std": 14.3,
+      "rh_min": 6.0,
+      "rh_max": 89.0
+    },
+    "2": {
+      "temp_mean": -10.92,
+      "temp_std": 5.01,
+      "temp_min": -31.0,
+      "temp_max": 2.6,
+      "rh_mean": 58.11,
+      "rh_std": 15.97,
+      "rh_min": 7.0,
+      "rh_max": 92.0
+    },
+    "3": {
+      "temp_mean": -8.26,
+      "temp_std": 5.19,
+      "temp_min": -26.7,
+      "temp_max": 8.7,
+      "rh_mean": 59.56,
+      "rh_std": 14.41,
+      "rh_min": 11.0,
+      "rh_max": 95.0
+    },
+    "4": {
+      "temp_mean": -3.45,
+      "temp_std": 4.96,
+      "temp_min": -23.4,
+      "temp_max": 11.9,
+      "rh_mean": 63.24,
+      "rh_std": 15.03,
+      "rh_min": 12.0,
+      "rh_max": 97.0
+    },
+    "5": {
+      "temp_mean": 3.03,
+      "temp_std": 4.37,
+      "temp_min": -20.5,
+      "temp_max": 17.1,
+      "rh_mean": 63.03,
+      "rh_std": 13.84,
+      "rh_min": 12.0,
+      "rh_max": 99.0
+    },
+    "6": {
+      "temp_mean": 9.86,
+      "temp_std": 3.95,
+      "temp_min": -10.9,
+      "temp_max": 26.8,
+      "rh_mean": 55.75,
+      "rh_std": 14.66,
+      "rh_min": 5.0,
+      "rh_max": 100.0
+    },
+    "7": {
+      "temp_mean": 16.02,
+      "temp_std": 2.71,
+      "temp_min": 0.4,
+      "temp_max": 28.2,
+      "rh_mean": 49.02,
+      "rh_std": 14.03,
+      "rh_min": 7.0,
+      "rh_max": 99.0
+    },
+    "8": {
+      "temp_mean": 16.66,
+      "temp_std": 2.48,
+      "temp_min": 2.1,
+      "temp_max": 28.4,
+      "rh_mean": 47.6,
+      "rh_std": 16.11,
+      "rh_min": 5.0,
+      "rh_max": 98.0
+    },
+    "9": {
+      "temp_mean": 11.66,
+      "temp_std": 3.4,
+      "temp_min": -8.4,
+      "temp_max": 25.6,
+      "rh_mean": 43.93,
+      "rh_std": 15.61,
+      "rh_min": 3.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 3.83,
+      "temp_std": 4.79,
+      "temp_min": -24.4,
+      "temp_max": 20.4,
+      "rh_mean": 39.0,
+      "rh_std": 13.2,
+      "rh_min": 2.0,
+      "rh_max": 96.0
+    },
+    "11": {
+      "temp_mean": -5.16,
+      "temp_std": 5.75,
+      "temp_min": -31.9,
+      "temp_max": 10.0,
+      "rh_mean": 47.3,
+      "rh_std": 14.62,
+      "rh_min": 6.0,
+      "rh_max": 94.0
+    },
+    "12": {
+      "temp_mean": -11.61,
+      "temp_std": 5.7,
+      "temp_min": -31.6,
+      "temp_max": 6.2,
+      "rh_mean": 51.86,
+      "rh_std": 16.32,
+      "rh_min": 6.0,
+      "rh_max": 91.0
+    }
+  },
+  "jaisalmer": {
+    "1": {
+      "temp_mean": 15.72,
+      "temp_std": 2.41,
+      "temp_min": 3.9,
+      "temp_max": 29.3,
+      "rh_mean": 50.89,
+      "rh_std": 13.65,
+      "rh_min": 9.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 19.67,
+      "temp_std": 3.42,
+      "temp_min": 3.8,
+      "temp_max": 34.7,
+      "rh_mean": 39.78,
+      "rh_std": 14.77,
+      "rh_min": 5.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 25.49,
+      "temp_std": 3.69,
+      "temp_min": 8.6,
+      "temp_max": 40.5,
+      "rh_mean": 33.1,
+      "rh_std": 14.46,
+      "rh_min": 3.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 31.29,
+      "temp_std": 2.6,
+      "temp_min": 17.5,
+      "temp_max": 44.4,
+      "rh_mean": 26.32,
+      "rh_std": 10.86,
+      "rh_min": 4.0,
+      "rh_max": 93.0
+    },
+    "5": {
+      "temp_mean": 34.32,
+      "temp_std": 1.76,
+      "temp_min": 21.4,
+      "temp_max": 48.6,
+      "rh_mean": 33.16,
+      "rh_std": 10.9,
+      "rh_min": 3.0,
+      "rh_max": 89.0
+    },
+    "6": {
+      "temp_mean": 34.04,
+      "temp_std": 1.92,
+      "temp_min": 23.8,
+      "temp_max": 46.5,
+      "rh_mean": 46.52,
+      "rh_std": 10.79,
+      "rh_min": 3.0,
+      "rh_max": 96.0
+    },
+    "7": {
+      "temp_mean": 32.4,
+      "temp_std": 2.05,
+      "temp_min": 24.3,
+      "temp_max": 44.2,
+      "rh_mean": 57.94,
+      "rh_std": 11.3,
+      "rh_min": 19.0,
+      "rh_max": 97.0
+    },
+    "8": {
+      "temp_mean": 30.21,
+      "temp_std": 2.0,
+      "temp_min": 22.8,
+      "temp_max": 41.2,
+      "rh_mean": 66.59,
+      "rh_std": 12.11,
+      "rh_min": 22.0,
+      "rh_max": 99.0
+    },
+    "9": {
+      "temp_mean": 30.42,
+      "temp_std": 2.15,
+      "temp_min": 21.3,
+      "temp_max": 41.1,
+      "rh_mean": 56.68,
+      "rh_std": 15.09,
+      "rh_min": 11.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 29.35,
+      "temp_std": 1.97,
+      "temp_min": 16.3,
+      "temp_max": 40.8,
+      "rh_mean": 34.59,
+      "rh_std": 12.59,
+      "rh_min": 7.0,
+      "rh_max": 97.0
+    },
+    "11": {
+      "temp_mean": 23.41,
+      "temp_std": 2.72,
+      "temp_min": 9.5,
+      "temp_max": 36.0,
+      "rh_mean": 38.09,
+      "rh_std": 13.36,
+      "rh_min": 9.0,
+      "rh_max": 99.0
+    },
+    "12": {
+      "temp_mean": 17.25,
+      "temp_std": 2.87,
+      "temp_min": 3.7,
+      "temp_max": 31.3,
+      "rh_mean": 48.54,
+      "rh_std": 13.84,
+      "rh_min": 8.0,
+      "rh_max": 100.0
+    }
+  },
+  "mumbai": {
+    "1": {
+      "temp_mean": 23.76,
+      "temp_std": 1.43,
+      "temp_min": 14.4,
+      "temp_max": 33.4,
+      "rh_mean": 61.99,
+      "rh_std": 8.04,
+      "rh_min": 17.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 24.76,
+      "temp_std": 1.7,
+      "temp_min": 13.0,
+      "temp_max": 36.3,
+      "rh_mean": 62.12,
+      "rh_std": 10.15,
+      "rh_min": 15.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 26.8,
+      "temp_std": 1.64,
+      "temp_min": 16.6,
+      "temp_max": 37.6,
+      "rh_mean": 65.23,
+      "rh_std": 10.23,
+      "rh_min": 16.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 28.3,
+      "temp_std": 1.13,
+      "temp_min": 20.4,
+      "temp_max": 39.1,
+      "rh_mean": 72.71,
+      "rh_std": 6.19,
+      "rh_min": 19.0,
+      "rh_max": 100.0
+    },
+    "5": {
+      "temp_mean": 29.42,
+      "temp_std": 0.73,
+      "temp_min": 23.9,
+      "temp_max": 36.5,
+      "rh_mean": 73.82,
+      "rh_std": 3.57,
+      "rh_min": 41.0,
+      "rh_max": 99.0
+    },
+    "6": {
+      "temp_mean": 28.05,
+      "temp_std": 1.27,
+      "temp_min": 24.9,
+      "temp_max": 34.9,
+      "rh_mean": 83.89,
+      "rh_std": 6.28,
+      "rh_min": 51.0,
+      "rh_max": 96.0
+    },
+    "7": {
+      "temp_mean": 26.53,
+      "temp_std": 0.59,
+      "temp_min": 24.5,
+      "temp_max": 29.7,
+      "rh_mean": 89.12,
+      "rh_std": 2.61,
+      "rh_min": 71.0,
+      "rh_max": 97.0
+    },
+    "8": {
+      "temp_mean": 26.29,
+      "temp_std": 0.5,
+      "temp_min": 24.1,
+      "temp_max": 30.7,
+      "rh_mean": 88.66,
+      "rh_std": 2.33,
+      "rh_min": 69.0,
+      "rh_max": 96.0
+    },
+    "9": {
+      "temp_mean": 26.7,
+      "temp_std": 0.75,
+      "temp_min": 22.2,
+      "temp_max": 33.9,
+      "rh_mean": 86.81,
+      "rh_std": 3.36,
+      "rh_min": 52.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 27.78,
+      "temp_std": 1.03,
+      "temp_min": 20.4,
+      "temp_max": 35.5,
+      "rh_mean": 78.03,
+      "rh_std": 9.65,
+      "rh_min": 21.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 27.06,
+      "temp_std": 1.1,
+      "temp_min": 18.4,
+      "temp_max": 34.7,
+      "rh_mean": 66.13,
+      "rh_std": 9.85,
+      "rh_min": 21.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 25.15,
+      "temp_std": 1.51,
+      "temp_min": 15.4,
+      "temp_max": 33.5,
+      "rh_mean": 63.37,
+      "rh_std": 8.28,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    }
+  },
+  "chennai": {
+    "1": {
+      "temp_mean": 24.37,
+      "temp_std": 0.88,
+      "temp_min": 15.2,
+      "temp_max": 30.8,
+      "rh_mean": 74.8,
+      "rh_std": 6.25,
+      "rh_min": 37.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 25.26,
+      "temp_std": 1.06,
+      "temp_min": 16.4,
+      "temp_max": 34.1,
+      "rh_mean": 74.07,
+      "rh_std": 4.34,
+      "rh_min": 28.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 27.35,
+      "temp_std": 1.1,
+      "temp_min": 17.5,
+      "temp_max": 36.7,
+      "rh_mean": 74.6,
+      "rh_std": 3.84,
+      "rh_min": 28.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 29.64,
+      "temp_std": 1.04,
+      "temp_min": 22.8,
+      "temp_max": 39.4,
+      "rh_mean": 74.21,
+      "rh_std": 3.01,
+      "rh_min": 28.0,
+      "rh_max": 99.0
+    },
+    "5": {
+      "temp_mean": 31.41,
+      "temp_std": 1.36,
+      "temp_min": 24.9,
+      "temp_max": 42.0,
+      "rh_mean": 68.19,
+      "rh_std": 8.26,
+      "rh_min": 22.0,
+      "rh_max": 98.0
+    },
+    "6": {
+      "temp_mean": 30.91,
+      "temp_std": 1.45,
+      "temp_min": 24.3,
+      "temp_max": 40.0,
+      "rh_mean": 64.2,
+      "rh_std": 9.51,
+      "rh_min": 24.0,
+      "rh_max": 99.0
+    },
+    "7": {
+      "temp_mean": 29.94,
+      "temp_std": 1.43,
+      "temp_min": 24.3,
+      "temp_max": 38.8,
+      "rh_mean": 65.88,
+      "rh_std": 10.46,
+      "rh_min": 27.0,
+      "rh_max": 97.0
+    },
+    "8": {
+      "temp_mean": 29.07,
+      "temp_std": 1.21,
+      "temp_min": 24.3,
+      "temp_max": 37.7,
+      "rh_mean": 71.48,
+      "rh_std": 8.94,
+      "rh_min": 32.0,
+      "rh_max": 97.0
+    },
+    "9": {
+      "temp_mean": 28.57,
+      "temp_std": 0.94,
+      "temp_min": 23.9,
+      "temp_max": 36.4,
+      "rh_mean": 76.21,
+      "rh_std": 6.68,
+      "rh_min": 34.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 27.6,
+      "temp_std": 1.27,
+      "temp_min": 20.5,
+      "temp_max": 36.1,
+      "rh_mean": 79.57,
+      "rh_std": 7.44,
+      "rh_min": 27.0,
+      "rh_max": 99.0
+    },
+    "11": {
+      "temp_mean": 25.87,
+      "temp_std": 0.87,
+      "temp_min": 17.8,
+      "temp_max": 32.8,
+      "rh_mean": 81.83,
+      "rh_std": 7.09,
+      "rh_min": 35.0,
+      "rh_max": 99.0
+    },
+    "12": {
+      "temp_mean": 24.87,
+      "temp_std": 0.88,
+      "temp_min": 16.7,
+      "temp_max": 30.2,
+      "rh_mean": 77.66,
+      "rh_std": 7.28,
+      "rh_min": 39.0,
+      "rh_max": 100.0
+    }
+  },
+  "guwahati": {
+    "1": {
+      "temp_mean": 17.33,
+      "temp_std": 1.45,
+      "temp_min": 6.4,
+      "temp_max": 27.1,
+      "rh_mean": 75.28,
+      "rh_std": 5.47,
+      "rh_min": 32.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 19.65,
+      "temp_std": 1.78,
+      "temp_min": 7.7,
+      "temp_max": 31.3,
+      "rh_mean": 69.99,
+      "rh_std": 8.26,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 23.59,
+      "temp_std": 2.14,
+      "temp_min": 11.8,
+      "temp_max": 36.2,
+      "rh_mean": 61.99,
+      "rh_std": 12.34,
+      "rh_min": 11.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 25.15,
+      "temp_std": 2.09,
+      "temp_min": 16.3,
+      "temp_max": 38.5,
+      "rh_mean": 74.47,
+      "rh_std": 12.6,
+      "rh_min": 15.0,
+      "rh_max": 100.0
+    },
+    "5": {
+      "temp_mean": 26.26,
+      "temp_std": 1.54,
+      "temp_min": 18.8,
+      "temp_max": 35.4,
+      "rh_mean": 82.82,
+      "rh_std": 6.66,
+      "rh_min": 37.0,
+      "rh_max": 100.0
+    },
+    "6": {
+      "temp_mean": 27.32,
+      "temp_std": 1.06,
+      "temp_min": 21.8,
+      "temp_max": 36.2,
+      "rh_mean": 88.11,
+      "rh_std": 4.25,
+      "rh_min": 40.0,
+      "rh_max": 100.0
+    },
+    "7": {
+      "temp_mean": 27.63,
+      "temp_std": 1.0,
+      "temp_min": 23.3,
+      "temp_max": 35.8,
+      "rh_mean": 89.16,
+      "rh_std": 4.2,
+      "rh_min": 55.0,
+      "rh_max": 100.0
+    },
+    "8": {
+      "temp_mean": 27.79,
+      "temp_std": 1.08,
+      "temp_min": 23.6,
+      "temp_max": 36.1,
+      "rh_mean": 87.68,
+      "rh_std": 4.32,
+      "rh_min": 56.0,
+      "rh_max": 100.0
+    },
+    "9": {
+      "temp_mean": 27.05,
+      "temp_std": 1.11,
+      "temp_min": 21.8,
+      "temp_max": 35.1,
+      "rh_mean": 87.71,
+      "rh_std": 4.73,
+      "rh_min": 41.0,
+      "rh_max": 100.0
+    },
+    "10": {
+      "temp_mean": 25.36,
+      "temp_std": 1.53,
+      "temp_min": 16.9,
+      "temp_max": 34.0,
+      "rh_mean": 82.89,
+      "rh_std": 5.3,
+      "rh_min": 45.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 21.86,
+      "temp_std": 1.52,
+      "temp_min": 12.1,
+      "temp_max": 31.0,
+      "rh_mean": 76.7,
+      "rh_std": 4.99,
+      "rh_min": 34.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 18.64,
+      "temp_std": 1.56,
+      "temp_min": 7.6,
+      "temp_max": 28.5,
+      "rh_mean": 76.6,
+      "rh_std": 4.59,
+      "rh_min": 39.0,
+      "rh_max": 100.0
+    }
+  },
+  "bengaluru": {
+    "1": {
+      "temp_mean": 20.8,
+      "temp_std": 1.14,
+      "temp_min": 9.9,
+      "temp_max": 31.1,
+      "rh_mean": 61.09,
+      "rh_std": 8.24,
+      "rh_min": 11.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 22.76,
+      "temp_std": 1.41,
+      "temp_min": 10.3,
+      "temp_max": 33.9,
+      "rh_mean": 51.98,
+      "rh_std": 11.19,
+      "rh_min": 7.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 25.46,
+      "temp_std": 1.59,
+      "temp_min": 12.4,
+      "temp_max": 35.6,
+      "rh_mean": 48.61,
+      "rh_std": 13.56,
+      "rh_min": 6.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 26.93,
+      "temp_std": 1.53,
+      "temp_min": 16.7,
+      "temp_max": 36.8,
+      "rh_mean": 53.45,
+      "rh_std": 11.73,
+      "rh_min": 10.0,
+      "rh_max": 99.0
+    },
+    "5": {
+      "temp_mean": 25.83,
+      "temp_std": 1.37,
+      "temp_min": 18.0,
+      "temp_max": 36.2,
+      "rh_mean": 68.12,
+      "rh_std": 10.0,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    },
+    "6": {
+      "temp_mean": 23.35,
+      "temp_std": 1.09,
+      "temp_min": 18.7,
+      "temp_max": 32.4,
+      "rh_mean": 78.55,
+      "rh_std": 5.86,
+      "rh_min": 32.0,
+      "rh_max": 100.0
+    },
+    "7": {
+      "temp_mean": 22.52,
+      "temp_std": 0.91,
+      "temp_min": 18.2,
+      "temp_max": 31.4,
+      "rh_mean": 79.9,
+      "rh_std": 5.95,
+      "rh_min": 40.0,
+      "rh_max": 100.0
+    },
+    "8": {
+      "temp_mean": 22.28,
+      "temp_std": 0.76,
+      "temp_min": 17.5,
+      "temp_max": 31.0,
+      "rh_mean": 81.07,
+      "rh_std": 5.3,
+      "rh_min": 38.0,
+      "rh_max": 100.0
+    },
+    "9": {
+      "temp_mean": 22.36,
+      "temp_std": 0.69,
+      "temp_min": 16.3,
+      "temp_max": 29.4,
+      "rh_mean": 81.26,
+      "rh_std": 5.35,
+      "rh_min": 41.0,
+      "rh_max": 100.0
+    },
+    "10": {
+      "temp_mean": 22.23,
+      "temp_std": 0.82,
+      "temp_min": 12.7,
+      "temp_max": 30.8,
+      "rh_mean": 78.76,
+      "rh_std": 9.67,
+      "rh_min": 26.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 21.26,
+      "temp_std": 1.16,
+      "temp_min": 10.6,
+      "temp_max": 31.1,
+      "rh_mean": 75.77,
+      "rh_std": 11.21,
+      "rh_min": 14.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 20.39,
+      "temp_std": 1.05,
+      "temp_min": 9.8,
+      "temp_max": 29.4,
+      "rh_mean": 71.64,
+      "rh_std": 9.36,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    }
+  },
+  "zone_coastal": {
+    "1": {
+      "temp_mean": 24.07,
+      "temp_std": 1.23,
+      "temp_min": 14.4,
+      "temp_max": 33.4,
+      "rh_mean": 68.39,
+      "rh_std": 9.63,
+      "rh_min": 17.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 25.01,
+      "temp_std": 1.44,
+      "temp_min": 13.0,
+      "temp_max": 36.3,
+      "rh_mean": 68.1,
+      "rh_std": 9.83,
+      "rh_min": 15.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 27.08,
+      "temp_std": 1.42,
+      "temp_min": 16.6,
+      "temp_max": 37.6,
+      "rh_mean": 69.91,
+      "rh_std": 9.03,
+      "rh_min": 16.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 28.97,
+      "temp_std": 1.28,
+      "temp_min": 20.4,
+      "temp_max": 39.4,
+      "rh_mean": 73.46,
+      "rh_std": 4.92,
+      "rh_min": 19.0,
+      "rh_max": 100.0
+    },
+    "5": {
+      "temp_mean": 30.42,
+      "temp_std": 1.48,
+      "temp_min": 23.9,
+      "temp_max": 42.0,
+      "rh_mean": 71.01,
+      "rh_std": 6.95,
+      "rh_min": 22.0,
+      "rh_max": 99.0
+    },
+    "6": {
+      "temp_mean": 29.48,
+      "temp_std": 1.98,
+      "temp_min": 24.3,
+      "temp_max": 40.0,
+      "rh_mean": 74.04,
+      "rh_std": 12.72,
+      "rh_min": 24.0,
+      "rh_max": 99.0
+    },
+    "7": {
+      "temp_mean": 28.23,
+      "temp_std": 2.03,
+      "temp_min": 24.3,
+      "temp_max": 38.8,
+      "rh_mean": 77.5,
+      "rh_std": 13.9,
+      "rh_min": 27.0,
+      "rh_max": 97.0
+    },
+    "8": {
+      "temp_mean": 27.68,
+      "temp_std": 1.67,
+      "temp_min": 24.1,
+      "temp_max": 37.7,
+      "rh_mean": 80.07,
+      "rh_std": 10.79,
+      "rh_min": 32.0,
+      "rh_max": 97.0
+    },
+    "9": {
+      "temp_mean": 27.63,
+      "temp_std": 1.27,
+      "temp_min": 22.2,
+      "temp_max": 36.4,
+      "rh_mean": 81.51,
+      "rh_std": 7.49,
+      "rh_min": 34.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 27.69,
+      "temp_std": 1.16,
+      "temp_min": 20.4,
+      "temp_max": 36.1,
+      "rh_mean": 78.8,
+      "rh_std": 8.65,
+      "rh_min": 21.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 26.46,
+      "temp_std": 1.15,
+      "temp_min": 17.8,
+      "temp_max": 34.7,
+      "rh_mean": 73.98,
+      "rh_std": 11.63,
+      "rh_min": 21.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 25.01,
+      "temp_std": 1.24,
+      "temp_min": 15.4,
+      "temp_max": 33.5,
+      "rh_mean": 70.51,
+      "rh_std": 10.57,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    }
+  },
+  "zone_arid": {
+    "1": {
+      "temp_mean": 15.72,
+      "temp_std": 2.41,
+      "temp_min": 3.9,
+      "temp_max": 29.3,
+      "rh_mean": 50.89,
+      "rh_std": 13.65,
+      "rh_min": 9.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 19.67,
+      "temp_std": 3.42,
+      "temp_min": 3.8,
+      "temp_max": 34.7,
+      "rh_mean": 39.78,
+      "rh_std": 14.77,
+      "rh_min": 5.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 25.49,
+      "temp_std": 3.69,
+      "temp_min": 8.6,
+      "temp_max": 40.5,
+      "rh_mean": 33.1,
+      "rh_std": 14.46,
+      "rh_min": 3.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 31.29,
+      "temp_std": 2.6,
+      "temp_min": 17.5,
+      "temp_max": 44.4,
+      "rh_mean": 26.32,
+      "rh_std": 10.86,
+      "rh_min": 4.0,
+      "rh_max": 93.0
+    },
+    "5": {
+      "temp_mean": 34.32,
+      "temp_std": 1.76,
+      "temp_min": 21.4,
+      "temp_max": 48.6,
+      "rh_mean": 33.16,
+      "rh_std": 10.9,
+      "rh_min": 3.0,
+      "rh_max": 89.0
+    },
+    "6": {
+      "temp_mean": 34.04,
+      "temp_std": 1.92,
+      "temp_min": 23.8,
+      "temp_max": 46.5,
+      "rh_mean": 46.52,
+      "rh_std": 10.79,
+      "rh_min": 3.0,
+      "rh_max": 96.0
+    },
+    "7": {
+      "temp_mean": 32.4,
+      "temp_std": 2.05,
+      "temp_min": 24.3,
+      "temp_max": 44.2,
+      "rh_mean": 57.94,
+      "rh_std": 11.3,
+      "rh_min": 19.0,
+      "rh_max": 97.0
+    },
+    "8": {
+      "temp_mean": 30.21,
+      "temp_std": 2.0,
+      "temp_min": 22.8,
+      "temp_max": 41.2,
+      "rh_mean": 66.59,
+      "rh_std": 12.11,
+      "rh_min": 22.0,
+      "rh_max": 99.0
+    },
+    "9": {
+      "temp_mean": 30.42,
+      "temp_std": 2.15,
+      "temp_min": 21.3,
+      "temp_max": 41.1,
+      "rh_mean": 56.68,
+      "rh_std": 15.09,
+      "rh_min": 11.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 29.35,
+      "temp_std": 1.97,
+      "temp_min": 16.3,
+      "temp_max": 40.8,
+      "rh_mean": 34.59,
+      "rh_std": 12.59,
+      "rh_min": 7.0,
+      "rh_max": 97.0
+    },
+    "11": {
+      "temp_mean": 23.41,
+      "temp_std": 2.72,
+      "temp_min": 9.5,
+      "temp_max": 36.0,
+      "rh_mean": 38.09,
+      "rh_std": 13.36,
+      "rh_min": 9.0,
+      "rh_max": 99.0
+    },
+    "12": {
+      "temp_mean": 17.25,
+      "temp_std": 2.87,
+      "temp_min": 3.7,
+      "temp_max": 31.3,
+      "rh_mean": 48.54,
+      "rh_std": 13.84,
+      "rh_min": 8.0,
+      "rh_max": 100.0
+    }
+  },
+  "zone_hill": {
+    "1": {
+      "temp_mean": -14.27,
+      "temp_std": 5.73,
+      "temp_min": -33.5,
+      "temp_max": 5.3,
+      "rh_mean": 57.0,
+      "rh_std": 14.3,
+      "rh_min": 6.0,
+      "rh_max": 89.0
+    },
+    "2": {
+      "temp_mean": -10.92,
+      "temp_std": 5.01,
+      "temp_min": -31.0,
+      "temp_max": 2.6,
+      "rh_mean": 58.11,
+      "rh_std": 15.97,
+      "rh_min": 7.0,
+      "rh_max": 92.0
+    },
+    "3": {
+      "temp_mean": -8.26,
+      "temp_std": 5.19,
+      "temp_min": -26.7,
+      "temp_max": 8.7,
+      "rh_mean": 59.56,
+      "rh_std": 14.41,
+      "rh_min": 11.0,
+      "rh_max": 95.0
+    },
+    "4": {
+      "temp_mean": -3.45,
+      "temp_std": 4.96,
+      "temp_min": -23.4,
+      "temp_max": 11.9,
+      "rh_mean": 63.24,
+      "rh_std": 15.03,
+      "rh_min": 12.0,
+      "rh_max": 97.0
+    },
+    "5": {
+      "temp_mean": 3.03,
+      "temp_std": 4.37,
+      "temp_min": -20.5,
+      "temp_max": 17.1,
+      "rh_mean": 63.03,
+      "rh_std": 13.84,
+      "rh_min": 12.0,
+      "rh_max": 99.0
+    },
+    "6": {
+      "temp_mean": 9.86,
+      "temp_std": 3.95,
+      "temp_min": -10.9,
+      "temp_max": 26.8,
+      "rh_mean": 55.75,
+      "rh_std": 14.66,
+      "rh_min": 5.0,
+      "rh_max": 100.0
+    },
+    "7": {
+      "temp_mean": 16.02,
+      "temp_std": 2.71,
+      "temp_min": 0.4,
+      "temp_max": 28.2,
+      "rh_mean": 49.02,
+      "rh_std": 14.03,
+      "rh_min": 7.0,
+      "rh_max": 99.0
+    },
+    "8": {
+      "temp_mean": 16.66,
+      "temp_std": 2.48,
+      "temp_min": 2.1,
+      "temp_max": 28.4,
+      "rh_mean": 47.6,
+      "rh_std": 16.11,
+      "rh_min": 5.0,
+      "rh_max": 98.0
+    },
+    "9": {
+      "temp_mean": 11.66,
+      "temp_std": 3.4,
+      "temp_min": -8.4,
+      "temp_max": 25.6,
+      "rh_mean": 43.93,
+      "rh_std": 15.61,
+      "rh_min": 3.0,
+      "rh_max": 99.0
+    },
+    "10": {
+      "temp_mean": 3.83,
+      "temp_std": 4.79,
+      "temp_min": -24.4,
+      "temp_max": 20.4,
+      "rh_mean": 39.0,
+      "rh_std": 13.2,
+      "rh_min": 2.0,
+      "rh_max": 96.0
+    },
+    "11": {
+      "temp_mean": -5.16,
+      "temp_std": 5.75,
+      "temp_min": -31.9,
+      "temp_max": 10.0,
+      "rh_mean": 47.3,
+      "rh_std": 14.62,
+      "rh_min": 6.0,
+      "rh_max": 94.0
+    },
+    "12": {
+      "temp_mean": -11.61,
+      "temp_std": 5.7,
+      "temp_min": -31.6,
+      "temp_max": 6.2,
+      "rh_mean": 51.86,
+      "rh_std": 16.32,
+      "rh_min": 6.0,
+      "rh_max": 91.0
+    }
+  },
+  "zone_plains": {
+    "1": {
+      "temp_mean": 17.27,
+      "temp_std": 3.35,
+      "temp_min": 2.4,
+      "temp_max": 31.1,
+      "rh_mean": 68.81,
+      "rh_std": 10.27,
+      "rh_min": 11.0,
+      "rh_max": 100.0
+    },
+    "2": {
+      "temp_mean": 19.84,
+      "temp_std": 3.1,
+      "temp_min": 4.1,
+      "temp_max": 33.9,
+      "rh_mean": 62.26,
+      "rh_std": 13.18,
+      "rh_min": 7.0,
+      "rh_max": 100.0
+    },
+    "3": {
+      "temp_mean": 23.75,
+      "temp_std": 2.77,
+      "temp_min": 7.2,
+      "temp_max": 38.8,
+      "rh_mean": 55.3,
+      "rh_std": 14.23,
+      "rh_min": 6.0,
+      "rh_max": 100.0
+    },
+    "4": {
+      "temp_mean": 26.99,
+      "temp_std": 2.71,
+      "temp_min": 15.3,
+      "temp_max": 44.5,
+      "rh_mean": 54.69,
+      "rh_std": 19.96,
+      "rh_min": 5.0,
+      "rh_max": 100.0
+    },
+    "5": {
+      "temp_mean": 28.21,
+      "temp_std": 3.51,
+      "temp_min": 18.0,
+      "temp_max": 45.6,
+      "rh_mean": 62.35,
+      "rh_std": 22.01,
+      "rh_min": 6.0,
+      "rh_max": 100.0
+    },
+    "6": {
+      "temp_mean": 27.93,
+      "temp_std": 4.39,
+      "temp_min": 18.7,
+      "temp_max": 45.4,
+      "rh_mean": 72.4,
+      "rh_std": 19.23,
+      "rh_min": 8.0,
+      "rh_max": 100.0
+    },
+    "7": {
+      "temp_mean": 26.68,
+      "temp_std": 3.38,
+      "temp_min": 18.2,
+      "temp_max": 42.0,
+      "rh_mean": 81.48,
+      "rh_std": 9.49,
+      "rh_min": 21.0,
+      "rh_max": 100.0
+    },
+    "8": {
+      "temp_mean": 26.28,
+      "temp_std": 3.1,
+      "temp_min": 17.5,
+      "temp_max": 39.6,
+      "rh_mean": 82.9,
+      "rh_std": 7.66,
+      "rh_min": 26.0,
+      "rh_max": 100.0
+    },
+    "9": {
+      "temp_mean": 25.84,
+      "temp_std": 2.75,
+      "temp_min": 16.3,
+      "temp_max": 37.3,
+      "rh_mean": 81.24,
+      "rh_std": 9.04,
+      "rh_min": 20.0,
+      "rh_max": 100.0
+    },
+    "10": {
+      "temp_mean": 24.47,
+      "temp_std": 2.2,
+      "temp_min": 12.7,
+      "temp_max": 37.4,
+      "rh_mean": 73.13,
+      "rh_std": 14.34,
+      "rh_min": 15.0,
+      "rh_max": 100.0
+    },
+    "11": {
+      "temp_mean": 21.26,
+      "temp_std": 1.75,
+      "temp_min": 8.9,
+      "temp_max": 32.6,
+      "rh_mean": 70.71,
+      "rh_std": 11.71,
+      "rh_min": 14.0,
+      "rh_max": 100.0
+    },
+    "12": {
+      "temp_mean": 18.14,
+      "temp_std": 2.75,
+      "temp_min": 2.0,
+      "temp_max": 29.4,
+      "rh_mean": 71.34,
+      "rh_std": 9.39,
+      "rh_min": 18.0,
+      "rh_max": 100.0
+    }
+  },
+  "_metadata": {
+    "fit_period": "2006-01-01 to 2020-12-31",
+    "heldout_test_period": "2021-01-01 to 2025-12-31",
+    "cities": [
+      "delhi",
+      "leh",
+      "jaisalmer",
+      "mumbai",
+      "chennai",
+      "guwahati",
+      "bengaluru"
+    ],
+    "zones": [
+      "coastal",
+      "arid",
+      "hill",
+      "plains"
+    ],
+    "station_to_city": {
+      "AWS_IND_C01": "mumbai",
+      "AWS_IND_C02": "chennai",
+      "AWS_IND_C03": "mumbai",
+      "AWS_IND_C04": "chennai",
+      "AWS_IND_A01": "jaisalmer",
+      "AWS_IND_A02": "jaisalmer",
+      "AWS_IND_A03": "jaisalmer",
+      "AWS_IND_A04": "jaisalmer",
+      "AWS_IND_H01": "leh",
+      "AWS_IND_H02": "leh",
+      "AWS_IND_H03": "guwahati",
+      "AWS_IND_H04": "bengaluru",
+      "AWS_IND_P01": "delhi",
+      "AWS_IND_P02": "delhi",
+      "AWS_IND_P03": "guwahati",
+      "AWS_IND_P04": "delhi"
+    },
+    "city_zone_map": {
+      "delhi": "plains",
+      "leh": "hill",
+      "jaisalmer": "arid",
+      "mumbai": "coastal",
+      "chennai": "coastal",
+      "guwahati": "plains",
+      "bengaluru": "plains"
+    }
+  }
+}

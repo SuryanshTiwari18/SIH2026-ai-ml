@@ -1,0 +1,16 @@
+{
+  "config_name": "FULL_FIXED",
+  "description": "Full Season-Safety Suite with Sustained-Deviation Freeze Gate: Tier 1B + Dew-Point Invariant + MSLP Reduction + Rolling 14-day EMA Baseline with Freeze Gate (freeze_on_sustained_deviation=True, threshold=3) + Recalibrated Buddy Threshold (2.5619)",
+  "tier1b_enabled": true,
+  "use_rolling_baseline": true,
+  "freeze_on_sustained_deviation": true,
+  "freeze_threshold": 3,
+  "use_mslp_reduction": true,
+  "dew_point_check_enabled": true,
+  "dew_point_tolerance_c": 0.5,
+  "rolling_baseline_alpha": 0.0235,
+  "buddy_peer_threshold": 2.5619,
+  "buddy_delta_threshold": 2.0,
+  "mahalanobis_threshold": 6.5,
+  "thresholds_path": "models/tier3_thresholds_v4_recalibrated.json"
+}

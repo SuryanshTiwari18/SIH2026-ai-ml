@@ -1,0 +1,866 @@
+{
+  "test": {
+    "config_ablation_baseline": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 2,
+            "recall": 11.76470588235294
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 0,
+        "normal_fpr": 0.0
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 13,
+            "recall": 76.47058823529412
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 36,
+            "recall": 63.1578947368421
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 116,
+            "recall": 40.845070422535215
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 908,
+            "recall": 80.78291814946618
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 143,
+            "recall": 97.94520547945206
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 258,
+        "normal_fpr": 1.8736383442265796
+      }
+    },
+    "config_ablation_tier1b_only": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 4,
+            "recall": 23.52941176470588
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 6,
+            "recall": 10.526315789473683
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 146,
+            "recall": 12.98932384341637
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 890,
+        "normal_fpr": 6.463326071169208
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 15,
+            "recall": 88.23529411764706
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 36,
+            "recall": 63.1578947368421
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 116,
+            "recall": 40.845070422535215
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 911,
+            "recall": 81.04982206405694
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 143,
+            "recall": 97.94520547945206
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 1137,
+        "normal_fpr": 8.257080610021786
+      }
+    },
+    "config_ablation_tier1b_plus_t3_static": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 4,
+            "recall": 23.52941176470588
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 6,
+            "recall": 10.526315789473683
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 146,
+            "recall": 12.98932384341637
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 890,
+        "normal_fpr": 6.463326071169208
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 15,
+            "recall": 88.23529411764706
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 35,
+            "recall": 61.40350877192983
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 116,
+            "recall": 40.845070422535215
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 919,
+            "recall": 81.76156583629893
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 143,
+            "recall": 97.94520547945206
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 1138,
+        "normal_fpr": 8.264342774146696
+      }
+    },
+    "config_ablation_full": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 4,
+            "recall": 23.52941176470588
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 6,
+            "recall": 10.526315789473683
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 146,
+            "recall": 12.98932384341637
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 890,
+        "normal_fpr": 6.463326071169208
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 15,
+            "recall": 88.23529411764706
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 34,
+            "recall": 59.64912280701754
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 75,
+            "recall": 26.408450704225352
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 817,
+            "recall": 72.68683274021353
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 122,
+            "recall": 83.56164383561644
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 920,
+        "normal_fpr": 6.681190994916484
+      }
+    },
+    "config_ablation_full_fixed": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 4,
+            "recall": 23.52941176470588
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 6,
+            "recall": 10.526315789473683
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 146,
+            "recall": 12.98932384341637
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 890,
+        "normal_fpr": 6.463326071169208
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 20,
+            "flagged": 20,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 134,
+            "flagged": 134,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 17,
+            "flagged": 15,
+            "recall": 88.23529411764706
+          },
+          "power_fluctuation_glitch": {
+            "total": 57,
+            "flagged": 34,
+            "recall": 59.64912280701754
+          },
+          "frozen_sensor": {
+            "total": 284,
+            "flagged": 80,
+            "recall": 28.169014084507044
+          },
+          "calibration_drift": {
+            "total": 1124,
+            "flagged": 817,
+            "recall": 72.68683274021353
+          },
+          "cross_sensor_inconsistency": {
+            "total": 146,
+            "flagged": 129,
+            "recall": 88.35616438356165
+          }
+        },
+        "normal_total": 13770,
+        "normal_flagged": 928,
+        "normal_fpr": 6.739288307915759
+      }
+    }
+  },
+  "spatial_holdout": {
+    "config_ablation_baseline": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 3,
+            "recall": 23.076923076923077
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 0,
+            "recall": 0.0
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 0,
+        "normal_fpr": 0.0
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 13,
+            "recall": 100.0
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 16,
+            "recall": 53.333333333333336
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 50,
+            "recall": 40.0
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 422,
+            "recall": 51.970443349753694
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 66,
+            "recall": 88.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 7162,
+        "normal_fpr": 21.427075542258788
+      }
+    },
+    "config_ablation_tier1b_only": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 6,
+            "recall": 46.15384615384615
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 3,
+            "recall": 10.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 22,
+            "recall": 17.599999999999998
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 74,
+            "recall": 9.113300492610838
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 4280,
+        "normal_fpr": 12.80478683620045
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 13,
+            "recall": 100.0
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 17,
+            "recall": 56.666666666666664
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 50,
+            "recall": 40.0
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 488,
+            "recall": 60.09852216748769
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 66,
+            "recall": 88.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 7785,
+        "normal_fpr": 23.290949887808527
+      }
+    },
+    "config_ablation_tier1b_plus_t3_static": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 6,
+            "recall": 46.15384615384615
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 3,
+            "recall": 10.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 22,
+            "recall": 17.599999999999998
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 74,
+            "recall": 9.113300492610838
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 4280,
+        "normal_fpr": 12.80478683620045
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 10,
+            "recall": 76.92307692307693
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 17,
+            "recall": 56.666666666666664
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 50,
+            "recall": 40.0
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 490,
+            "recall": 60.3448275862069
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 66,
+            "recall": 88.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 7785,
+        "normal_fpr": 23.290949887808527
+      }
+    },
+    "config_ablation_full": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 6,
+            "recall": 46.15384615384615
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 3,
+            "recall": 10.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 22,
+            "recall": 17.599999999999998
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 74,
+            "recall": 9.113300492610838
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 4280,
+        "normal_fpr": 12.80478683620045
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 13,
+            "recall": 100.0
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 12,
+            "recall": 40.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 35,
+            "recall": 28.000000000000004
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 379,
+            "recall": 46.67487684729064
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 61,
+            "recall": 81.33333333333333
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 4463,
+        "normal_fpr": 13.352281226626777
+      }
+    },
+    "config_ablation_full_fixed": {
+      "track1_hard_rule": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 6,
+            "recall": 46.15384615384615
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 3,
+            "recall": 10.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 22,
+            "recall": 17.599999999999998
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 74,
+            "recall": 9.113300492610838
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 0,
+            "recall": 0.0
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 4280,
+        "normal_fpr": 12.80478683620045
+      },
+      "track2_fusion": {
+        "recalls": {
+          "data_corruption": {
+            "total": 9,
+            "flagged": 9,
+            "recall": 100.0
+          },
+          "communication_dropout": {
+            "total": 71,
+            "flagged": 71,
+            "recall": 100.0
+          },
+          "spike_or_drop": {
+            "total": 13,
+            "flagged": 13,
+            "recall": 100.0
+          },
+          "power_fluctuation_glitch": {
+            "total": 30,
+            "flagged": 15,
+            "recall": 50.0
+          },
+          "frozen_sensor": {
+            "total": 125,
+            "flagged": 35,
+            "recall": 28.000000000000004
+          },
+          "calibration_drift": {
+            "total": 812,
+            "flagged": 407,
+            "recall": 50.12315270935961
+          },
+          "cross_sensor_inconsistency": {
+            "total": 75,
+            "flagged": 64,
+            "recall": 85.33333333333334
+          }
+        },
+        "normal_total": 33425,
+        "normal_flagged": 5377,
+        "normal_fpr": 16.086761406133135
+      }
+    }
+  }
+}

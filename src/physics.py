@@ -134,3 +134,90 @@ def calculate_atmospheric_thermal_tide_hpa(
     # Value at 10: cos(0) = +1. Value at 16: cos(pi) = -1. Value at 22: cos(2pi) = +1. Perfect!
     phase = 2.0 * np.pi * (solar_hour - 10.0) / 12.0
     return amplitude * np.cos(phase)
+
+
+# -----------------------------------------------------------------------------
+# Season-Safety Invariant Physics Additions (Strategies 1 & 2)
+# -----------------------------------------------------------------------------
+RD_DRY_AIR_J_KG_K = 287.05  # Gas constant for dry air in J/(kg*K)
+
+
+def reduce_pressure_to_msl(
+    pressure_hpa: np.ndarray | float,
+    temp_c: np.ndarray | float,
+    rh_pct: np.ndarray | float,
+    altitude_m: float,
+) -> np.ndarray | float:
+    """Computes Mean Sea Level Pressure (MSLP) via hypsometric reduction.
+
+    P_MSL = P * exp(g * z / (Rd * Tv))
+    Tv = (T + 273.15) * (1 + 0.61 * q)
+    where:
+    - g = 9.80665 m/s^2 (standard gravity)
+    - Rd = 287.05 J/(kg*K) (dry air gas constant)
+    - z = altitude_m (station elevation in meters)
+    - Tv = virtual temperature in Kelvin
+    - q = specific humidity ~ 0.622 * e / (P - 0.378 * e)
+
+    Enables season- and elevation-invariant spatial buddy pressure comparisons.
+    """
+    if altitude_m <= 0:
+        return pressure_hpa
+
+    p = np.asarray(pressure_hpa, dtype=np.float64)
+    t = np.asarray(temp_c, dtype=np.float64)
+    rh = np.asarray(rh_pct, dtype=np.float64)
+
+    # Actual vapor pressure e in hPa
+    e_val = calculate_actual_vapor_pressure_hpa(t, rh)
+
+    # Specific humidity q (dimensionless kg/kg), safely bounded
+    p_safe = np.maximum(p, 300.0)
+    denom = np.maximum(p_safe - 0.378 * e_val, 100.0)
+    q = np.clip(0.622 * e_val / denom, 0.0, 0.1)
+
+    # Virtual temperature Tv in Kelvin
+    t_kelvin = t + 273.15
+    t_v = t_kelvin * (1.0 + 0.61 * q)
+
+    # Hypsometric reduction exponent
+    exponent = (GRAVITY_M_PER_S2 * altitude_m) / (RD_DRY_AIR_J_KG_K * t_v)
+    p_msl = p * np.exp(exponent)
+
+    if np.isscalar(pressure_hpa):
+        return float(p_msl)
+    return p_msl
+
+
+def check_dew_point_depression_invariant(
+    temp_c: np.ndarray | float,
+    humidity_pct: np.ndarray | float,
+    tolerance_c: float = 0.5,
+) -> np.ndarray | bool:
+    """Evaluates the thermodynamic dew-point depression invariant.
+
+    Thermodynamic Invariant: T - T_d >= 0
+    Allowing float sensor noise tolerance: T - T_d >= -tolerance_c
+    (i.e., T_d <= T + tolerance_c).
+
+    Returns:
+        Boolean array/scalar where True indicates a physical VIOLATION
+        (unphysical psychrometric breakdown: T_d > T + tolerance_c),
+        and False indicates thermodynamically consistent telemetry.
+    """
+    t = np.asarray(temp_c, dtype=np.float64)
+    rh = np.asarray(humidity_pct, dtype=np.float64)
+
+    t_d = calculate_dew_point_c(t, rh)
+    depression = t - t_d
+
+    # Violation occurs when dew point depression is strictly less than -tolerance
+    is_violation = depression < -tolerance_c
+
+    # NaNs should not be marked as violation here (Tier 1 handles NaNs)
+    nan_mask = np.isnan(t) | np.isnan(rh)
+    is_violation[nan_mask] = False
+
+    if np.isscalar(temp_c):
+        return bool(is_violation)
+    return is_violation

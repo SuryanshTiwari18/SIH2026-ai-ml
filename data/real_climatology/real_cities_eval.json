@@ -1,0 +1,510 @@
+{
+  "summary": {
+    "delhi": {
+      "total_days": 7305,
+      "elevation_m": 214.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 10,
+      "mahalanobis_rolling_rate_pct": 0.1369
+    },
+    "leh": {
+      "total_days": 7305,
+      "elevation_m": 3414.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 10,
+      "mahalanobis_rolling_rate_pct": 0.1369
+    },
+    "jaisalmer": {
+      "total_days": 7305,
+      "elevation_m": 240.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 10,
+      "mahalanobis_rolling_rate_pct": 0.1369
+    },
+    "mumbai": {
+      "total_days": 7305,
+      "elevation_m": 6.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 9,
+      "mahalanobis_rolling_rate_pct": 0.1232
+    },
+    "chennai": {
+      "total_days": 7305,
+      "elevation_m": 12.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 18,
+      "mahalanobis_rolling_rate_pct": 0.2464
+    },
+    "guwahati": {
+      "total_days": 7305,
+      "elevation_m": 52.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 10,
+      "mahalanobis_rolling_rate_pct": 0.1369
+    },
+    "bengaluru": {
+      "total_days": 7305,
+      "elevation_m": 910.0,
+      "tier1b_flagged": 0,
+      "tier1b_rate_pct": 0.0,
+      "dew_point_flagged": 0,
+      "dew_point_rate_pct": 0.0,
+      "mahalanobis_rolling_flagged": 10,
+      "mahalanobis_rolling_rate_pct": 0.1369
+    }
+  },
+  "monthly": {
+    "delhi": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "leh": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "jaisalmer": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "mumbai": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "chennai": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "guwahati": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    },
+    "bengaluru": {
+      "1": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "2": {
+        "total_days": 565,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "3": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "4": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "5": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "6": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "7": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "8": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "9": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "10": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "11": {
+        "total_days": 600,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      },
+      "12": {
+        "total_days": 620,
+        "t1b_flagged": 0,
+        "t1b_rate_pct": 0.0
+      }
+    }
+  }
+}

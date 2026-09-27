@@ -1,0 +1,33 @@
+{
+  "mahalanobis_threshold": 6.5,
+  "mahalanobis_p998_train": 6.3371,
+  "buddy_delta_threshold": 2.0,
+  "buddy_peer_threshold": 2.4315,
+  "buddy_peer_threshold_uncentered_scale": 2.5619,
+  "buddy_peer_threshold_old_static": 2.0,
+  "calibration_methodology": "Empirical 98th percentile of |delta_P_cluster_msl_scaled| on train normal rows (train.parquet, is_anomaly == False, N=70,905)",
+  "recalibrated_from_feature": "delta_P_cluster_msl_scaled",
+  "physical_unscaled_moments_hpa": {
+    "feature": "delta_P_cluster_msl",
+    "mean": -1.202946,
+    "std": 6.437057
+  },
+  "scaled_feature_moments": {
+    "feature": "delta_P_cluster_msl_scaled",
+    "formula": "(delta_P_cluster_msl - train_mean) / train_std",
+    "mean": -5.889e-06,
+    "std": 1.000002,
+    "p95": 1.957511,
+    "p98": 2.431486,
+    "p99": 2.713416
+  },
+  "uncentered_scaled_moments": {
+    "formula": "delta_P_cluster_msl / train_std",
+    "mean": -0.186878,
+    "std": 1.000000,
+    "p95": 2.085999,
+    "p98": 2.561886,
+    "p99": 2.853085
+  },
+  "documentation_bug_fixed": "In V2 report Part B.2, the moments of the physical unscaled residual (mean=-1.2029 hPa, std=6.4370 hPa) were incorrectly tabulated as the moments of the scaled feature. By construction on train normal rows, delta_P_cluster_msl_scaled has mean=0.0000 and std=1.0000."
+}

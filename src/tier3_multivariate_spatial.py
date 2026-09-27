@@ -41,6 +41,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from src.physics import reduce_pressure_to_msl, check_dew_point_depression_invariant
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("tier3_multivariate_spatial")
 
@@ -301,6 +303,247 @@ def recompute_holdout_mahalanobis(
 
 
 # -----------------------------------------------------------------------------
+# Season-Safety Strategy 3: Online 14-Day Rolling EMA Baseline
+# -----------------------------------------------------------------------------
+class Rolling14DayMahalanobisBaseline:
+    """Online Exponential Moving Average (EMA) Mahalanobis Baseline over 14-day window.
+
+    Replaces static per-(station, hour) lookup with adaptive baseline that tracks
+    seasonal progressions while remaining robust against sensor anomalies.
+    """
+
+    def __init__(
+        self,
+        alpha: float = 0.0235,
+        clip_threshold: float = 6.5,
+        metadata_path: Path = Path("data/raw/generation_metadata.json"),
+        freeze_on_sustained_deviation: bool = False,
+        freeze_threshold: int = 3,
+    ):
+        self.alpha = alpha
+        self.clip_threshold = clip_threshold
+        self.freeze_on_sustained_deviation = freeze_on_sustained_deviation
+        self.freeze_threshold = freeze_threshold
+        self.elevated_counters: Dict[Tuple[str, int], int] = {}
+        self.state: Dict[Tuple[str, int], Dict[str, np.ndarray]] = {}
+
+        self.stations_meta: Dict[str, Any] = {}
+        if metadata_path.exists():
+            with open(metadata_path, "r") as f:
+                self.stations_meta = json.load(f).get("stations", {})
+
+        stats_path = Path("models/mahalanobis_stats.joblib")
+        if stats_path.exists():
+            self.mahal_stats = joblib.load(stats_path)
+        else:
+            self.mahal_stats = {}
+
+    def _get_prior(self, station_id: str, hour: int) -> Dict[str, np.ndarray]:
+        st_hour = self.mahal_stats.get("station_hour", {})
+        if (station_id, hour) in st_hour:
+            p = st_hour[(station_id, hour)]
+            return {"mu": p["mu"].copy(), "cov": p["cov"].copy(), "inv_cov": p["inv_cov"].copy()}
+
+        zone = self.stations_meta.get(station_id, {}).get("climate_zone", "plains")
+        zone_hour = self.mahal_stats.get("zone_hour", {})
+        if (zone, hour) in zone_hour:
+            p = zone_hour[(zone, hour)]
+            return {"mu": p["mu"].copy(), "cov": p["cov"].copy(), "inv_cov": p["inv_cov"].copy()}
+
+        hour_fb = self.mahal_stats.get("hour_fallback", {})
+        if hour in hour_fb:
+            p = hour_fb[hour]
+            return {"mu": p["mu"].copy(), "cov": p["cov"].copy(), "inv_cov": p["inv_cov"].copy()}
+
+        glob = self.mahal_stats.get("global_fallback", {})
+        if glob:
+            return {"mu": glob["mu"].copy(), "cov": glob["cov"].copy(), "inv_cov": glob["inv_cov"].copy()}
+
+        return {"mu": np.zeros(3), "cov": np.eye(3), "inv_cov": np.eye(3)}
+
+    def get_state(self, station_id: str, hour: int) -> Dict[str, np.ndarray]:
+        key = (station_id, hour)
+        if key not in self.state:
+            self.state[key] = self._get_prior(station_id, hour)
+        return self.state[key]
+
+    def compute_and_update(self, station_id: str, hour: int, x: np.ndarray, update: bool = True) -> float:
+        st = self.get_state(station_id, hour)
+        diff = x - st["mu"]
+        dm_sq = float(diff @ st["inv_cov"] @ diff)
+        dm = math.sqrt(max(0.0, dm_sq))
+
+        key = (station_id, hour)
+        is_elevated = dm > self.clip_threshold
+
+        if self.freeze_on_sustained_deviation:
+            if is_elevated:
+                self.elevated_counters[key] = self.elevated_counters.get(key, 0) + 1
+            else:
+                self.elevated_counters[key] = 0
+
+            is_frozen = self.elevated_counters.get(key, 0) >= self.freeze_threshold
+            if is_frozen:
+                update = False
+
+        if update and not np.isnan(x).any():
+            w = self.alpha if not is_elevated else self.alpha * 0.1
+            new_mu = (1.0 - w) * st["mu"] + w * x
+            v = x - new_mu
+            new_cov = (1.0 - w) * st["cov"] + w * np.outer(v, v) + 1e-4 * np.eye(3)
+            new_inv_cov = np.linalg.pinv(new_cov)
+            self.state[key] = {
+                "mu": new_mu,
+                "cov": new_cov,
+                "inv_cov": new_inv_cov,
+            }
+
+        return dm
+
+
+def recompute_mahalanobis_with_rolling_baseline(
+    df: pd.DataFrame,
+    metadata_path: Path = Path("data/raw/generation_metadata.json"),
+    alpha: float = 0.0235,
+    freeze_on_sustained_deviation: bool = False,
+    freeze_threshold: int = 3,
+) -> pd.DataFrame:
+    """Computes online 14-day rolling EMA Mahalanobis distance on a DataFrame."""
+    res_df = df.copy()
+    res_df["timestamp"] = pd.to_datetime(res_df["timestamp"])
+    res_df = res_df.sort_values(["station_id", "timestamp"]).reset_index(drop=True)
+
+    rolling_engine = Rolling14DayMahalanobisBaseline(
+        alpha=alpha,
+        metadata_path=metadata_path,
+        freeze_on_sustained_deviation=freeze_on_sustained_deviation,
+        freeze_threshold=freeze_threshold,
+    )
+    hours = res_df["timestamp"].dt.hour.values
+    stations = res_df["station_id"].values
+    x_mat = res_df[SENSOR_COLS].values
+    n = len(res_df)
+    dm_rolling = np.zeros(n, dtype=np.float64)
+
+    for i in range(n):
+        if np.isnan(x_mat[i]).any():
+            dm_rolling[i] = 0.0
+        else:
+            dm_rolling[i] = rolling_engine.compute_and_update(
+                stations[i], int(hours[i]), x_mat[i], update=True
+            )
+
+    res_df["mahalanobis_dist_rolling"] = dm_rolling
+    return res_df
+
+
+# -----------------------------------------------------------------------------
+# Season-Safety Strategy 2: MSLP Hypsometric Spatial Buddy Feature Computation
+# -----------------------------------------------------------------------------
+TRAIN_MSLP_DELTA_MEAN: float = -1.202908
+TRAIN_MSLP_DELTA_STD: float = 6.437047
+
+
+def compute_mslp_buddy_features(
+    df: pd.DataFrame,
+    neighbor_mapping: Dict[str, List[str]],
+    metadata_path: Path = Path("data/raw/generation_metadata.json"),
+    reference_telemetry: Optional[pd.DataFrame] = None,
+    train_mean: float = TRAIN_MSLP_DELTA_MEAN,
+    train_std: float = TRAIN_MSLP_DELTA_STD,
+) -> pd.DataFrame:
+    """Computes elevation-compensated spatial buddy pressure features via MSLP hypsometric reduction.
+
+    Guarantees:
+    - Filters out corrupted / sentinel telemetry before building neighbor comparison pivot table.
+    - Uses reference_telemetry (e.g. concurrent network stations) if provided for holdouts.
+    - Scales residual delta_P_cluster_msl by train normal parameters (mean=-1.2029, std=6.4370).
+    """
+    res_df = df.copy()
+    stations_meta = {}
+    if metadata_path.exists():
+        with open(metadata_path, "r") as f:
+            stations_meta = json.load(f).get("stations", {})
+
+    ref = res_df if reference_telemetry is None else reference_telemetry
+
+    # Compute P_msl on clean reference observations
+    clean_ref_mask = (
+        (ref["temperature_c"] > -50.0)
+        & (ref["temperature_c"] < 65.0)
+        & (ref["pressure_hpa"] > 300.0)
+        & (ref["pressure_hpa"] < 1150.0)
+        & (ref["humidity_pct"] >= 0.0)
+        & (ref["humidity_pct"] <= 100.0)
+    )
+    if "anomaly_type" in ref.columns:
+        clean_ref_mask = clean_ref_mask & (~ref["anomaly_type"].isin(["communication_dropout", "data_corruption"]))
+
+    ref_clean = ref[clean_ref_mask].copy()
+    ref_clean["timestamp"] = pd.to_datetime(ref_clean["timestamp"])
+
+    ref_p_msl = np.zeros(len(ref_clean), dtype=np.float64)
+    ref_p = ref_clean["pressure_hpa"].to_numpy(dtype=np.float64)
+    ref_t = ref_clean["temperature_c"].to_numpy(dtype=np.float64)
+    ref_rh = ref_clean["humidity_pct"].to_numpy(dtype=np.float64)
+    ref_st = ref_clean["station_id"].to_numpy()
+
+    for j in range(len(ref_clean)):
+        st = ref_st[j]
+        alt = stations_meta.get(st, {}).get("altitude_m", 100.0)
+        ref_p_msl[j] = reduce_pressure_to_msl(ref_p[j], ref_t[j], ref_rh[j], alt)
+
+    ref_clean["pressure_msl"] = ref_p_msl
+    piv_p_msl = ref_clean.pivot_table(index="timestamp", columns="station_id", values="pressure_msl")
+
+    # Compute P_msl on target dataframe
+    res_df["timestamp"] = pd.to_datetime(res_df["timestamp"])
+    n_rows = len(res_df)
+    p_msl = np.zeros(n_rows, dtype=np.float64)
+    p_vals = res_df["pressure_hpa"].to_numpy(dtype=np.float64)
+    t_vals = res_df["temperature_c"].to_numpy(dtype=np.float64)
+    rh_vals = res_df["humidity_pct"].to_numpy(dtype=np.float64)
+    st_vals = res_df["station_id"].to_numpy()
+
+    for i in range(n_rows):
+        st = st_vals[i]
+        alt = stations_meta.get(st, {}).get("altitude_m", 100.0)
+        # Avoid unphysical negative temperatures or sentinels in reduction
+        if t_vals[i] > -50.0 and p_vals[i] > 300.0:
+            p_msl[i] = reduce_pressure_to_msl(p_vals[i], t_vals[i], rh_vals[i], alt)
+        else:
+            p_msl[i] = np.nan
+
+    res_df["pressure_msl"] = p_msl
+    delta_p_cluster_msl = np.zeros(n_rows, dtype=np.float64)
+    timestamps = res_df["timestamp"].values
+
+    for i in range(n_rows):
+        ts = timestamps[i]
+        st = st_vals[i]
+        p_i = p_msl[i]
+        if np.isnan(p_i):
+            delta_p_cluster_msl[i] = 0.0
+            continue
+
+        nbrs = neighbor_mapping.get(st, [])[:3]
+        nbr_vals = [
+            piv_p_msl.at[ts, n]
+            for n in nbrs
+            if ts in piv_p_msl.index and n in piv_p_msl.columns and not np.isnan(piv_p_msl.at[ts, n])
+        ]
+        if nbr_vals:
+            delta_p_cluster_msl[i] = p_i - float(np.median(nbr_vals))
+        else:
+            delta_p_cluster_msl[i] = 0.0
+
+    res_df["delta_P_cluster_msl"] = delta_p_cluster_msl
+    scale_safe = train_std if train_std > 1e-4 else 1.0
+    res_df["delta_P_cluster_msl_scaled"] = delta_p_cluster_msl / scale_safe
+    return res_df
+
+
+# -----------------------------------------------------------------------------
 # Threshold Selection & Calibration
 # -----------------------------------------------------------------------------
 def calibrate_tier3_thresholds(
@@ -343,11 +586,17 @@ def calibrate_tier3_thresholds(
 def apply_tier3_models(
     df: pd.DataFrame,
     thresholds: Dict[str, float],
+    use_rolling_baseline: bool = False,
+    use_mslp_reduction: bool = False,
+    check_dew_point: bool = True,
+    dew_point_tolerance_c: float = 0.5,
 ) -> pd.DataFrame:
     """Applies Model A, Model B, and Regional Agreement logic to a dataset.
     
     Outputs:
     - mahalanobis_flagged (bool): DM > tau_mahal (cross_sensor_inconsistency)
+    - dew_point_flagged (bool): T - T_d < -tolerance (dew-point depression invariant)
+    - tier3_multivariate_flagged (bool): mahalanobis_flagged | dew_point_flagged
     - buddy_flagged (bool): delta_T_buddy_scaled > tau_buddy OR |delta_P_cluster_scaled| > tau_buddy
     - isolated_deviation (bool): own_delta_large AND peer_diverged
     """
@@ -358,14 +607,42 @@ def apply_tier3_models(
     th_buddy = thresholds["buddy_peer_threshold"]
 
     # 1. Model A: Mahalanobis Consistency Detector
-    df["mahalanobis_flagged"] = df["mahalanobis_dist"] > th_m
+    if use_rolling_baseline and "mahalanobis_dist_rolling" in df.columns:
+        df["mahalanobis_flagged"] = df["mahalanobis_dist_rolling"] > th_m
+    else:
+        df["mahalanobis_flagged"] = df["mahalanobis_dist"] > th_m
+
+    # Dew-point depression invariant check (Additive Season-Safety Strategy 1)
+    if check_dew_point and "temperature_c" in df.columns and "humidity_pct" in df.columns:
+        df["dew_point_flagged"] = check_dew_point_depression_invariant(
+            df["temperature_c"].values, df["humidity_pct"].values, tolerance_c=dew_point_tolerance_c
+        )
+    else:
+        df["dew_point_flagged"] = False
+
+    df["tier3_multivariate_flagged"] = df["mahalanobis_flagged"] | df["dew_point_flagged"]
 
     # 2. Model B: Spatial Peer Divergence Detector
-    peer_diverged = (df["delta_T_buddy_scaled"] > th_buddy) | (df["delta_P_cluster_scaled"].abs() > th_buddy)
+    p_col = (
+        "delta_P_cluster_msl_scaled"
+        if (use_mslp_reduction and "delta_P_cluster_msl_scaled" in df.columns)
+        else "delta_P_cluster_scaled"
+    )
+    if p_col in df.columns:
+        p_peer = df[p_col].abs() > th_buddy
+    else:
+        p_peer = pd.Series(False, index=df.index)
+
+    t_buddy_col = "delta_T_buddy_scaled" if "delta_T_buddy_scaled" in df.columns else None
+    t_peer = df[t_buddy_col] > th_buddy if t_buddy_col else pd.Series(False, index=df.index)
+
+    peer_diverged = t_peer | p_peer
     df["buddy_flagged"] = peer_diverged
 
     # 3. Regional Agreement / Isolation Engine
-    own_delta_large = (df["delta_T_scaled"].abs() > th_delta) | (df["delta_P_scaled"].abs() > th_delta)
+    dt_col = df["delta_T_scaled"].abs() > th_delta if "delta_T_scaled" in df.columns else pd.Series(False, index=df.index)
+    dp_col = df["delta_P_scaled"].abs() > th_delta if "delta_P_scaled" in df.columns else pd.Series(False, index=df.index)
+    own_delta_large = dt_col | dp_col
     df["isolated_deviation"] = own_delta_large & peer_diverged
 
     return df

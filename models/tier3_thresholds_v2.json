@@ -1,0 +1,20 @@
+{
+  "version": "v2_season_safe",
+  "created_at": "2026-09-27T22:45:00Z",
+  "description": "Season-safe Tier 3 configuration incorporating rolling 14-day EMA baselines, dew-point depression invariant, and MSLP hypsometric buddy pressure reduction.",
+  "mahalanobis_threshold": 6.5,
+  "mahalanobis_p998_train": 6.3371,
+  "buddy_delta_threshold": 2.0,
+  "buddy_peer_threshold": 2.0,
+  "dew_point_depression_tolerance_c": 0.5,
+  "dew_point_check_enabled": true,
+  "rolling_baseline_window_days": 14,
+  "rolling_baseline_alpha": 0.0235,
+  "rolling_baseline_clip_threshold": 6.5,
+  "use_rolling_baseline": true,
+  "use_mslp_reduction": true,
+  "elevation_hypsometric_constants": {
+    "g_m_s2": 9.80665,
+    "rd_dry_air_j_kg_k": 287.05
+  }
+}

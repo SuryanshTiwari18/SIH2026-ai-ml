@@ -1,0 +1,12 @@
+{
+  "mahalanobis_threshold": 6.5,
+  "mahalanobis_p998_train": 6.3371,
+  "buddy_delta_threshold": 2.0,
+  "buddy_peer_threshold": 2.4315,
+  "buddy_peer_threshold_old": 2.0,
+  "calibration_methodology": "98th percentile of |delta_P_cluster_msl_scaled| on train normal rows (data/tier4_results/train.parquet, is_anomaly == False)",
+  "recalibrated_from_feature": "delta_P_cluster_msl_scaled",
+  "train_mslp_mean": -1.202908,
+  "train_mslp_std": 6.437047,
+  "percentile_p98": 2.431485
+}

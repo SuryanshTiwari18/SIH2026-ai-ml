@@ -1,0 +1,14 @@
+{
+  "config_name": "TIER1B_PLUS_T3_STATIC_BASELINE",
+  "description": "Tier 1B + Dew-Point Invariant + MSLP Reduction (Recalibrated buddy threshold 2.5619) with static Mahalanobis baseline",
+  "tier1b_enabled": true,
+  "use_rolling_baseline": false,
+  "use_mslp_reduction": true,
+  "dew_point_check_enabled": true,
+  "dew_point_tolerance_c": 0.5,
+  "rolling_baseline_alpha": 0.0235,
+  "buddy_peer_threshold": 2.5619,
+  "buddy_delta_threshold": 2.0,
+  "mahalanobis_threshold": 6.5,
+  "thresholds_path": "models/tier3_thresholds_v4_recalibrated.json"
+}

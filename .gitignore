@@ -13,14 +13,27 @@ data/splits/*.csv
 
 # --- Python ---
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
 *.pyo
+*.pyd
 .venv/
 venv/
 env/
 *.egg-info/
 .pytest_cache/
 .ipynb_checkpoints/
+
+# --- Temporary / scratch files & logs ---
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+*.log
+temp/
+tmp/
 
 # --- Secrets / environment (none needed yet, but before you add a real API key) ---
 .env
@@ -35,8 +48,9 @@ Thumbs.db
 .antigravity/
 scratch/
 
-# --- Model training artifacts (you'll hit these soon once training starts) ---
+# --- Model training artifacts ---
 models/*.pt
+!models/gru_autoencoder.pt
 models/*.pkl
 models/*.h5
 *.ckpt

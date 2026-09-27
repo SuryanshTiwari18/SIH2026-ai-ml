@@ -1,0 +1,13 @@
+{
+  "config_name": "TIER1B_ONLY",
+  "description": "Tier 1B Station-Month Climatology added; Tier 3 unchanged (legacy static baseline)",
+  "tier1b_enabled": true,
+  "use_rolling_baseline": false,
+  "use_mslp_reduction": false,
+  "dew_point_check_enabled": false,
+  "dew_point_tolerance_c": 0.5,
+  "rolling_baseline_alpha": 0.0235,
+  "buddy_peer_threshold": 2.0,
+  "buddy_delta_threshold": 2.0,
+  "mahalanobis_threshold": 6.5
+}
